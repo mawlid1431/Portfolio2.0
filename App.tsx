@@ -1,0 +1,1989 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from './components/ui/button';
+import { Input } from './components/ui/input';
+import { Textarea } from './components/ui/textarea';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './components/ui/card';
+import { Badge } from './components/ui/badge';
+import { Separator } from './components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
+import { toast, Toaster } from 'sonner';
+import { sendContactEmail as sendEmailContact, sendOrderEmail as sendEmailOrder } from './utils/emailService';
+import { 
+  Github, 
+  Linkedin, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  ExternalLink, 
+  Moon, 
+  Sun, 
+  MessageCircle,
+  ShoppingCart,
+  Trash2,
+  Plus,
+  Minus,
+  Code,
+  Users,
+  Globe,
+  Award,
+  GraduationCap,
+  Briefcase,
+  ArrowRight,
+  Star,
+  Zap,
+  Sparkles,
+  ChevronDown,
+  Package,
+  CheckCircle
+} from 'lucide-react';
+
+// Import your original profile images
+const profileImage1 = "/images/deh-screenshot.jpg"; // DEH project screenshot
+const profileImage2 = "/images/mowlid-profile.jpg"; // Your personal profile photo
+
+// Import your actual project images
+const dehProjectImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzOGZmIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ERUggUHJvamVjdDwvdGV4dD4KPC9zdmc+Cg==";
+const nujumArtsImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZmY4NzMzIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5OdWp1bSBBcnRzPC90ZXh0Pgo8L3N2Zz4K";
+const barkulanHubImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMTBiOTgxIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5CYXJrdWxhbiBIdWI8L3RleHQ+Cjwvc3ZnPgo=";
+const nesdaImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZGM0NGZmIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ORVNEQSBBZ2VuY3k8L3RleHQ+Cjwvc3ZnPgo=";
+
+interface Service {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+}
+
+interface CartItem extends Service {
+  quantity: number;
+}
+
+interface CheckoutData {
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
+interface OrderConfirmation {
+  orderId: string;
+  items: CartItem[];
+  customer: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  address: {
+    street: string;
+    city: string;
+    postal: string;
+    country: string;
+  };
+  total: number;
+  subtotal: number;
+  tax: number;
+}
+
+const services: Service[] = [
+  {
+    id: 'web-design',
+    title: 'Web Design',
+    description: 'Custom website design with modern UI/UX principles',
+    price: 459,
+    category: 'Design'
+  },
+  {
+    id: 'ui-ux-design',
+    title: 'UI/UX Design',
+    description: 'User interface and experience design for web and mobile',
+    price: 399,
+    category: 'Design'
+  },
+  {
+    id: 'ai-consulting',
+    title: 'AI & Business Consulting in Tech',
+    description: 'Strategic consulting for AI implementation and tech solutions',
+    price: 599,
+    category: 'Consulting'
+  },
+  {
+    id: 'digital-nomad',
+    title: 'Digital Nomad Support',
+    description: 'Complete support for remote work and digital lifestyle',
+    price: 299,
+    category: 'Support'
+  }
+];
+
+const projects = [
+  { 
+    name: 'DEH - Digital Empowerment Hub', 
+    description: 'Bridging the Digital Divide, Empowering Youth through technology education', 
+    image: dehProjectImage, 
+    tech: ['React', 'Next.js', 'TailwindCSS'],
+    url: 'https://deh-frontend.vercel.app/' 
+  },
+  { 
+    name: 'Nujum Arts', 
+    description: 'Art gallery platform - Make Your Home Amazing with Art', 
+    image: nujumArtsImage, 
+    tech: ['React', 'Sanity.io', 'E-commerce'],
+    url: '#' 
+  },
+  { 
+    name: 'Barkulanhub.com', 
+    description: 'Community platform for entrepreneurship and growth - Nurturing Community', 
+    image: barkulanHubImage, 
+    tech: ['React', 'Node.js', 'MongoDB'],
+    url: 'https://barkulanhub.com' 
+  },
+  { 
+    name: 'NESDA USA', 
+    description: 'Together we preserve our roots and empower our future - North East Somali Development Association', 
+    image: nesdaImage, 
+    tech: ['Next.js', 'TailwindCSS'],
+    url: '#' 
+  },
+  { 
+    name: 'Barkulan Job Finder', 
+    description: 'Job search platform connecting professionals with opportunities', 
+    image: 'https://images.unsplash.com/photo-1664651205193-bfb6bfdd3b09?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqb2IlMjBmaW5kZXIlMjBwbGF0Zm9ybSUyMHJlY3J1aXRtZW50fGVufDF8fHx8MTc1ODg3NjY0M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral', 
+    tech: ['Vue.js', 'Firebase'],
+    url: '#' 
+  },
+  { 
+    name: 'Great AI Hackathon', 
+    description: 'Event platform for AI hackathons and innovation competitions', 
+    image: 'https://images.unsplash.com/photo-1560523159-94c9d18bcf27?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhaSUyMGhhY2thdGhvbiUyMHRlY2hub2xvZ3klMjBldmVudHxlbnwxfHx8fDE3NTg4NzY2NDN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral', 
+    tech: ['React', 'Python', 'AI/ML'],
+    url: '#' 
+  },
+  { 
+    name: 'Waapo.org', 
+    description: 'Educational platform for online learning and skill development', 
+    image: 'https://images.unsplash.com/photo-1755548413928-4aaeba7c740e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3YWFwbyUyMGVkdWNhdGlvbiUyMHBsYXRmb3JtJTIwbGVhcm5pbmd8ZW58MXx8fHwxNzU4ODc2NjQzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral', 
+    tech: ['Angular', 'Express'],
+    url: 'https://waapo.org' 
+  },
+  { 
+    name: 'Mubarik Charity', 
+    description: 'Charity organization website for community support and donations', 
+    image: 'https://images.unsplash.com/photo-1713164833944-7c1e13aaac55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdWJhcmlrJTIwY2hhcml0eSUyMG9yZ2FuaXphdGlvbnxlbnwxfHx8fDE3NTg4NzY2NDN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral', 
+    tech: ['WordPress', 'PHP'],
+    url: '#' 
+  }
+];
+
+const FloatingIcon = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
+  <motion.div
+    initial={{ y: 0 }}
+    animate={{ y: [-10, 10, -10] }}
+    transition={{
+      duration: 4,
+      repeat: Infinity,
+      delay,
+      ease: "easeInOut"
+    }}
+  >
+    {children}
+  </motion.div>
+);
+
+const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let start = 0;
+    const end = value;
+    const increment = end / (duration * 60);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= end) {
+        setCount(end);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 1000 / 60);
+
+    return () => clearInterval(timer);
+  }, [value, duration]);
+
+  return <span>{count}+</span>;
+};
+
+export default function App() {
+  const [darkMode, setDarkMode] = useState(false);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [showCart, setShowCart] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
+  const [orderDetails, setOrderDetails] = useState<OrderConfirmation | null>(null);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' });
+  const [checkoutData, setCheckoutData] = useState<CheckoutData>({
+    fullName: '', email: '', phone: '', address: '', city: '', postalCode: '', country: ''
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  const addToCart = (service: Service) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === service.id);
+      if (existing) {
+        return prev.map(item => 
+          item.id === service.id 
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prev, { ...service, quantity: 1 }];
+    });
+    toast.success('Added to cart!');
+  };
+
+  const updateQuantity = (id: string, change: number) => {
+    setCart(prev => prev.map(item => {
+      if (item.id === id) {
+        const newQuantity = item.quantity + change;
+        return newQuantity > 0 ? { ...item, quantity: newQuantity } : item;
+      }
+      return item;
+    }).filter(item => item.quantity > 0));
+  };
+
+  const removeFromCart = (id: string) => {
+    setCart(prev => prev.filter(item => item.id !== id));
+    toast.success('Removed from cart');
+  };
+
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const tax = subtotal * 0.08;
+  const total = subtotal + tax;
+
+  const sendOrderEmail = async (orderData: OrderConfirmation) => {
+    try {
+      const emailData = {
+        orderId: orderData.orderId,
+        customer: orderData.customer,
+        address: orderData.address,
+        items: orderData.items,
+        subtotal: orderData.subtotal,
+        tax: orderData.tax,
+        total: orderData.total
+      };
+
+      const emailSent = await sendEmailOrder(emailData);
+      if (emailSent) {
+        console.log('✅ Order email sent successfully to malitmohamud@gmail.com');
+      } else {
+        console.error('❌ Failed to send order email');
+      }
+    } catch (error) {
+      console.error('Error sending order email:', error);
+    }
+  };
+
+  const sendContactEmail = async (contactData: any) => {
+    try {
+      const emailSent = await sendEmailContact({
+        name: contactData.name,
+        email: contactData.email,
+        phone: contactData.phone,
+        message: contactData.message
+      });
+      
+      if (emailSent) {
+        toast.success('Message sent successfully! I\'ll get back to you within 24 hours.');
+        console.log('✅ Contact email sent successfully to malitmohamud@gmail.com');
+      } else {
+        toast.error('Error sending message. Please try again or email me directly.');
+        console.error('❌ Failed to send contact email');
+      }
+    } catch (error) {
+      console.error('Error sending contact email:', error);
+      toast.error('Error sending message. Please try again.');
+    }
+  };
+
+  const handleCheckout = async () => {
+    if (!checkoutData.fullName || !checkoutData.email || !checkoutData.phone) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const orderId = `ORD-${Date.now()}`;
+    
+    const orderData: OrderConfirmation = {
+      orderId,
+      customer: {
+        name: checkoutData.fullName,
+        email: checkoutData.email,
+        phone: checkoutData.phone
+      },
+      address: {
+        street: checkoutData.address,
+        city: checkoutData.city,
+        postal: checkoutData.postalCode,
+        country: checkoutData.country
+      },
+      items: [...cart],
+      subtotal,
+      tax,
+      total
+    };
+
+    // Send email notification
+    await sendOrderEmail(orderData);
+    
+    // Set order details and show confirmation
+    setOrderDetails(orderData);
+    setShowOrderConfirmation(true);
+    
+    // Clear cart and close checkout
+    setCart([]);
+    setShowCheckout(false);
+    setShowCart(false);
+    setCheckoutData({
+      fullName: '', email: '', phone: '', address: '', city: '', postalCode: '', country: ''
+    });
+  };
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactForm.name || !contactForm.email || !contactForm.message) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    sendContactEmail(contactForm);
+    setContactForm({ name: '', email: '', phone: '', message: '' });
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return (
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <Toaster />
+      
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-20 left-10 w-2 h-2 bg-primary/20 rounded-full animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-1 h-1 bg-secondary/30 rounded-full animate-bounce"></div>
+        <div className="absolute bottom-20 left-1/4 w-1.5 h-1.5 bg-accent/25 rounded-full animate-ping"></div>
+        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-primary/15 rounded-full animate-pulse"></div>
+      </div>
+
+      {/* Header */}
+      <motion.header 
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm"
+      >
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex items-center space-x-3 cursor-pointer"
+            >
+              <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="w-10 h-10 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center shadow-lg"
+              >
+                <span className="text-primary-foreground text-lg font-bold">M</span>
+              </motion.div>
+              <span className="font-semibold text-foreground hover:text-primary transition-all duration-300">
+                Mowlid Mohamud
+              </span>
+            </motion.div>
+            
+            <nav className="hidden md:flex items-center space-x-8">
+              {['about', 'experience', 'projects', 'services', 'contact'].map((item) => (
+                <motion.button
+                  key={item}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => scrollToSection(item)}
+                  className="capitalize text-foreground hover:text-primary transition-colors duration-200 cursor-pointer font-medium"
+                >
+                  {item}
+                </motion.button>
+              ))}
+            </nav>
+
+            <div className="flex items-center space-x-4">
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setDarkMode(!darkMode)}
+                  className="relative overflow-hidden text-foreground hover:text-primary hover:bg-muted"
+                >
+                  <motion.div
+                    initial={false}
+                    animate={{ rotate: darkMode ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </motion.div>
+                </Button>
+              </motion.div>
+              
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowCart(true)}
+                  className="relative text-foreground hover:text-primary hover:bg-muted"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  <AnimatePresence>
+                    {cart.length > 0 && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="absolute -top-2 -right-2"
+                      >
+                        <Badge className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary text-primary-foreground">
+                          {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                        </Badge>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Button>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-secondary/10 overflow-hidden">
+        {/* Animated Background Orbs */}
+        <div className="absolute inset-0">
+          <motion.div
+            animate={{ 
+              x: [0, 100, 0],
+              y: [0, -50, 0],
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3]
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{ 
+              x: [0, -80, 0],
+              y: [0, 60, 0],
+              scale: [1, 0.8, 1],
+              opacity: [0.2, 0.5, 0.2]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-secondary/20 rounded-full blur-2xl"
+          />
+        </div>
+
+        <div className="container mx-auto px-4 py-20 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left Column - Content */}
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="space-y-8"
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.8 }}
+                  className="space-y-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Sparkles className="w-6 h-6 text-primary" />
+                    </motion.div>
+                    <span className="text-primary">Welcome to my digital world</span>
+                  </div>
+                  
+                  <h1 className="text-4xl md:text-6xl lg:text-7xl">
+                    <span className="block">
+                      <motion.span
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4, duration: 0.8 }}
+                        className="bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent"
+                      >
+                        Crafting
+                      </motion.span>
+                    </span>
+                    <span className="block">
+                      <motion.span
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6, duration: 0.8 }}
+                        className="bg-gradient-to-r from-secondary via-primary/60 to-primary bg-clip-text text-transparent"
+                      >
+                        Digital
+                      </motion.span>
+                    </span>
+                    <span className="block">
+                      <motion.span
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8, duration: 0.8 }}
+                        className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
+                      >
+                        Excellence
+                      </motion.span>
+                    </span>
+                  </h1>
+                </motion.div>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1, duration: 0.8 }}
+                  className="text-xl text-muted-foreground max-w-lg leading-relaxed"
+                >
+                  Full Stack Developer • Community Builder • Digital Innovator
+                  <br />
+                  <span className="text-primary">Transforming ideas into impactful digital solutions</span>
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2, duration: 0.8 }}
+                  className="flex flex-wrap gap-4"
+                >
+                  <Badge variant="secondary" className="px-4 py-2 bg-primary/10 text-primary border-primary/20">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Malaysia
+                  </Badge>
+                  <Badge variant="secondary" className="px-4 py-2 bg-secondary/10 text-secondary-foreground border-secondary/20">
+                    <Globe className="w-4 h-4 mr-2" />
+                    4 Languages
+                  </Badge>
+                  <Badge variant="secondary" className="px-4 py-2 bg-accent/10 text-accent-foreground border-accent/20">
+                    <Award className="w-4 h-4 mr-2" />
+                    ALX Graduate
+                  </Badge>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.4, duration: 0.8 }}
+                  className="flex flex-wrap gap-4"
+                >
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button 
+                      size="lg" 
+                      className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary group"
+                      onClick={() => scrollToSection('contact')}
+                    >
+                      <Mail className="w-5 h-5 mr-2" />
+                      Let's Connect
+                      <motion.div
+                        className="ml-2"
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        <ArrowRight className="w-4 h-4" />
+                      </motion.div>
+                    </Button>
+                  </motion.div>
+                  
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      className="border-primary/20 hover:bg-primary/5"
+                      onClick={() => scrollToSection('projects')}
+                    >
+                      <Zap className="w-5 h-5 mr-2" />
+                      View Projects
+                    </Button>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+
+              {/* Right Column - Profile Image */}
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
+                className="relative flex justify-center lg:justify-end"
+              >
+                <div className="relative">
+                  {/* Animated Ring */}
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute -inset-4 rounded-full bg-gradient-to-r from-primary via-secondary to-primary opacity-20 blur-sm"
+                  />
+                  
+                  {/* Second Ring */}
+                  <motion.div
+                    animate={{ rotate: -360 }}
+                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                    className="absolute -inset-2 rounded-full bg-gradient-to-r from-secondary via-accent to-secondary opacity-30"
+                  />
+
+                  {/* Profile Image Container */}
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    animate={{ 
+                      y: [0, -10, 0],
+                      rotateY: [0, 5, 0, -5, 0]
+                    }}
+                    transition={{ 
+                      y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+                      rotateY: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+                    }}
+                    className="relative w-80 h-80 rounded-full overflow-hidden border-4 border-background shadow-2xl"
+                  >
+                    <img 
+                      src={profileImage1} 
+                      alt="Mowlid Mohamud"
+                      className="w-full h-full object-cover"
+                    />
+                    
+                    {/* Overlay Glow */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-secondary/20" />
+                  </motion.div>
+
+                  {/* Floating Icons */}
+                  <FloatingIcon delay={0}>
+                    <div className="absolute -top-4 -right-4 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg">
+                      <Code className="w-6 h-6 text-primary-foreground" />
+                    </div>
+                  </FloatingIcon>
+
+                  <FloatingIcon delay={1}>
+                    <div className="absolute -bottom-4 -left-4 w-12 h-12 bg-secondary rounded-full flex items-center justify-center shadow-lg">
+                      <Users className="w-6 h-6 text-secondary-foreground" />
+                    </div>
+                  </FloatingIcon>
+
+                  <FloatingIcon delay={2}>
+                    <div className="absolute top-1/2 -right-8 w-10 h-10 bg-accent rounded-full flex items-center justify-center shadow-lg">
+                      <Globe className="w-5 h-5 text-accent-foreground" />
+                    </div>
+                  </FloatingIcon>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Stats Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.6, duration: 0.8 }}
+              className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8"
+            >
+              {[
+                { label: 'Projects Completed', value: 15 },
+                { label: 'Happy Clients', value: 25 },
+                { label: 'Countries Served', value: 8 },
+                { label: 'Youth Trained', value: 12 }
+              ].map((stat) => (
+                <motion.div
+                  key={stat.label}
+                  whileHover={{ scale: 1.05 }}
+                  className="text-center p-6 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50"
+                >
+                  <div className="text-3xl text-primary mb-2">
+                    <AnimatedCounter value={stat.value} />
+                  </div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Scroll Indicator */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2, duration: 0.8 }}
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        >
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="text-muted-foreground cursor-pointer"
+            onClick={() => scrollToSection('about')}
+          >
+            <ChevronDown className="w-6 h-6" />
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-32 relative">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="max-w-6xl mx-auto"
+          >
+            <div className="text-center mb-16">
+              <motion.h2 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-5xl mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              >
+                About Me
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+                className="text-xl text-muted-foreground max-w-3xl mx-auto"
+              >
+                Passionate about creating digital solutions that make a difference in communities worldwide
+              </motion.p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                {
+                  icon: Code,
+                  title: 'Technical Expertise',
+                  description: 'Experienced in TypeScript, JavaScript, Next.js, and modern web technologies. Specialized in creating scalable web applications.',
+                  gradient: 'from-blue-500 to-cyan-500'
+                },
+                {
+                  icon: Users,
+                  title: 'Community Building',
+                  description: 'Passionate about building communities and empowering youth through technology and entrepreneurship training programs.',
+                  gradient: 'from-purple-500 to-pink-500'
+                },
+                {
+                  icon: Award,
+                  title: 'Social Impact',
+                  description: 'Active in mental health organizations and social projects, combining technology with social work for community impact.',
+                  gradient: 'from-green-500 to-emerald-500'
+                }
+              ].map((item, index) => (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.2 }}
+                  whileHover={{ y: -10, transition: { duration: 0.3 } }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm h-full group">
+                    <CardHeader className="pb-4">
+                      <motion.div
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center mb-4 shadow-lg`}
+                      >
+                        <item.icon className="w-6 h-6 text-white" />
+                      </motion.div>
+                      <CardTitle className="group-hover:text-primary transition-colors">{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground leading-relaxed">{item.description}</p>
+                    </CardContent>
+                    
+                    {/* Hover Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Second Profile Image */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.5 }}
+              viewport={{ once: true }}
+              className="mt-20 flex justify-center"
+            >
+              <div className="relative">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="w-64 h-80 rounded-2xl overflow-hidden shadow-2xl border-4 border-background"
+                >
+                  <img 
+                    src={profileImage2} 
+                    alt="Mowlid Mohamud in office"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent" />
+                </motion.div>
+                
+                {/* Floating Badge */}
+                <motion.div
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: 0.8 }}
+                  viewport={{ once: true }}
+                  className="absolute -right-8 top-8"
+                >
+                  <Badge className="bg-primary text-primary-foreground px-4 py-2 shadow-lg">
+                    <Star className="w-4 h-4 mr-2" />
+                    Available for Projects
+                  </Badge>
+                </motion.div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Education Section */}
+      <section className="py-32 bg-muted/30 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="max-w-4xl mx-auto"
+          >
+            <div className="text-center mb-16">
+              <motion.h2 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-5xl mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              >
+                Education & Learning
+              </motion.h2>
+            </div>
+            
+            <div className="space-y-8">
+              {[
+                {
+                  icon: GraduationCap,
+                  title: 'Bachelor of Computer Science',
+                  institution: 'Asia Metropolitan International University (Malaysia)',
+                  status: 'Current',
+                  color: 'from-blue-500 to-cyan-500'
+                },
+                {
+                  icon: Award,
+                  title: 'ALX Africa - Software Engineering Graduate',
+                  institution: 'Comprehensive software engineering program',
+                  status: 'Completed',
+                  color: 'from-purple-500 to-pink-500'
+                },
+                {
+                  icon: Code,
+                  title: 'Hargabits Digital School - Graduate',
+                  institution: 'Digital skills and technology training',
+                  status: 'Completed',
+                  color: 'from-green-500 to-emerald-500'
+                }
+              ].map((edu, index) => (
+                <motion.div
+                  key={edu.title}
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.2 }}
+                  whileHover={{ scale: 1.02 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden group">
+                    <CardHeader>
+                      <div className="flex items-center gap-6">
+                        <motion.div
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${edu.color} flex items-center justify-center shadow-lg`}
+                        >
+                          <edu.icon className="w-8 h-8 text-white" />
+                        </motion.div>
+                        <div className="flex-1">
+                          <CardTitle className="group-hover:text-primary transition-colors text-xl">
+                            {edu.title}
+                          </CardTitle>
+                          <CardDescription className="text-lg mt-1">
+                            {edu.institution}
+                          </CardDescription>
+                          <Badge 
+                            variant={edu.status === 'Current' ? 'default' : 'secondary'}
+                            className="mt-2"
+                          >
+                            {edu.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    {/* Hover Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Experience Section */}
+      <section id="experience" className="py-32 relative">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="max-w-6xl mx-auto"
+          >
+            <div className="text-center mb-16">
+              <motion.h2 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-5xl mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              >
+                Experience & Social Impact
+              </motion.h2>
+            </div>
+            
+            <div className="grid gap-8">
+              {[
+                {
+                  icon: Globe,
+                  title: 'Somaliland Standard - Digital Media & Protocol Manager (2023)',
+                  description: 'Led digital media coverage and protocol management for Africa Science Week, coordinating across 11 African countries including Somaliland',
+                  skills: ['Digital Media', 'Protocol Management', 'International Coordination', 'Event Coverage'],
+                  color: 'from-indigo-500 to-purple-500',
+                  link: 'https://somalilandstandard.com/africa-science-week-starts-in-11-african-countries-including-somaliland/'
+                },
+                {
+                  icon: Briefcase,
+                  title: 'BarkulanHub - Head of Community & Communication Manager',
+                  description: 'Built their website and managed community growth, leading digital transformation initiatives',
+                  skills: ['Community Management', 'Web Development', 'Digital Marketing'],
+                  color: 'from-blue-500 to-cyan-500'
+                },
+                {
+                  icon: Users,
+                  title: 'Mansa Musa Start School - Head of Communication & Trainer',
+                  description: 'Trained 12+ youth in entrepreneurship & fundraising, developing comprehensive training programs',
+                  skills: ['Training & Development', 'Entrepreneurship', 'Public Speaking'],
+                  color: 'from-purple-500 to-pink-500'
+                },
+                {
+                  icon: Globe,
+                  title: 'Sirta Maanka Mental Health Org - Media & Communications',
+                  description: 'Mental health awareness and community support through digital platforms and outreach',
+                  skills: ['Mental Health Advocacy', 'Content Creation', 'Community Outreach'],
+                  color: 'from-green-500 to-emerald-500'
+                },
+                {
+                  icon: Mail,
+                  title: 'Shaqdoo.org - Communication Intern',
+                  description: 'Digital communication and outreach, building connections across diverse communities',
+                  skills: ['Digital Communication', 'Social Media', 'Community Building'],
+                  color: 'from-orange-500 to-red-500'
+                }
+              ].map((exp, index) => (
+                <motion.div
+                  key={exp.title}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                  viewport={{ once: true }}
+                  onClick={() => exp.link && window.open(exp.link, '_blank')}
+                  className={exp.link ? 'cursor-pointer' : ''}
+                >
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden group relative">
+                    <CardHeader>
+                      <div className="flex items-start gap-6">
+                        <motion.div
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          className={`w-14 h-14 rounded-xl bg-gradient-to-br ${exp.color} flex items-center justify-center shadow-lg flex-shrink-0`}
+                        >
+                          <exp.icon className="w-7 h-7 text-white" />
+                        </motion.div>
+                        <div className="flex-1">
+                          <CardTitle className="group-hover:text-primary transition-colors text-xl mb-3 flex items-center gap-2">
+                            {exp.title}
+                            {exp.link && (
+                              <motion.div
+                                animate={{ x: [0, 5, 0] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </motion.div>
+                            )}
+                          </CardTitle>
+                          <CardDescription className="text-base leading-relaxed mb-4">
+                            {exp.description}
+                          </CardDescription>
+                          <div className="flex flex-wrap gap-2">
+                            {exp.skills.map((skill) => (
+                              <Badge key={skill} variant="secondary" className="text-xs">
+                                {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    {/* Featured Badge for Somaliland Standard */}
+                    {exp.link && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="absolute top-4 right-4"
+                      >
+                        <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-3 py-1 shadow-lg">
+                          <Globe className="w-3 h-3 mr-1" />
+                          Featured
+                        </Badge>
+                      </motion.div>
+                    )}
+                    
+                    {/* Hover Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Projects Section */}
+      <section id="projects" className="py-32 bg-muted/30 relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="max-w-7xl mx-auto"
+          >
+            <div className="text-center mb-16">
+              <motion.h2 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-5xl mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              >
+                Featured Projects
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+                className="text-xl text-muted-foreground max-w-3xl mx-auto"
+              >
+                A showcase of digital solutions that have made real impact in communities worldwide
+              </motion.p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {projects.map((project, index) => (
+                <motion.div
+                  key={project.name}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
+                  whileHover={{ y: -10 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm group h-full">
+                    <div className="relative aspect-video overflow-hidden cursor-pointer"
+                         onClick={() => project.url !== '#' && window.open(project.url, '_blank')}>
+                      <motion.img 
+                        src={project.image} 
+                        alt={project.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        whileHover={{ scale: 1.1 }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      
+                      {/* Hover Overlay */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="absolute inset-0 bg-primary/20 flex items-center justify-center"
+                      >
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          whileHover={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          className="w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg"
+                        >
+                          <ExternalLink className="w-6 h-6 text-primary-foreground" />
+                        </motion.div>
+                      </motion.div>
+                      
+                      {/* Live Badge for DEH project */}
+                      {project.url !== '#' && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="absolute top-4 right-4"
+                        >
+                          <Badge className="bg-green-500 text-white px-3 py-1 shadow-lg">
+                            <Globe className="w-3 h-3 mr-1" />
+                            Live
+                          </Badge>
+                        </motion.div>
+                      )}
+                    </div>
+                    
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                        {project.name}
+                        <motion.div
+                          animate={{ x: [0, 5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </motion.div>
+                      </CardTitle>
+                      <CardDescription className="leading-relaxed">
+                        {project.description}
+                      </CardDescription>
+                    </CardHeader>
+                    
+                    <CardFooter>
+                      <div className="flex flex-wrap gap-2">
+                        {project.tech.map((tech) => (
+                          <Badge key={tech} variant="outline" className="text-xs">
+                            {tech}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardFooter>
+                    
+                    {/* Hover Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section id="services" className="py-32 relative">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="max-w-6xl mx-auto"
+          >
+            <div className="text-center mb-16">
+              <motion.h2 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-5xl mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              >
+                Services & Solutions
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+                className="text-xl text-muted-foreground max-w-3xl mx-auto"
+              >
+                Professional services designed to elevate your digital presence and business success
+              </motion.p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {services.map((service, index) => (
+                <motion.div
+                  key={service.id}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
+                  whileHover={{ y: -10, scale: 1.02 }}
+                  viewport={{ once: true }}
+                >
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden group h-full">
+                    <CardHeader>
+                      <div className="flex justify-between items-start mb-4">
+                        <Badge 
+                          variant="secondary" 
+                          className="bg-primary/10 text-primary border-primary/20"
+                        >
+                          {service.category}
+                        </Badge>
+                        <motion.div
+                          whileHover={{ scale: 1.2, rotate: 15 }}
+                          className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center"
+                        >
+                          <Star className="w-4 h-4 text-white" />
+                        </motion.div>
+                      </div>
+                      <CardTitle className="group-hover:text-primary transition-colors">
+                        {service.title}
+                      </CardTitle>
+                      <CardDescription className="leading-relaxed">
+                        {service.description}
+                      </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent>
+                      <motion.div 
+                        className="text-3xl mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        ${service.price}
+                      </motion.div>
+                    </CardContent>
+                    
+                    <CardFooter>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full"
+                      >
+                        <Button 
+                          onClick={() => addToCart(service)}
+                          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary group"
+                        >
+                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          Add to Cart
+                          <motion.div
+                            className="ml-2 opacity-0 group-hover:opacity-100"
+                            animate={{ x: [0, 5, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            <ArrowRight className="w-4 h-4" />
+                          </motion.div>
+                        </Button>
+                      </motion.div>
+                    </CardFooter>
+                    
+                    {/* Hover Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section id="contact" className="py-32 bg-muted/30 relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="max-w-6xl mx-auto"
+          >
+            <div className="text-center mb-16">
+              <motion.h2 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-5xl mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              >
+                Let's Create Something Amazing
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+                className="text-xl text-muted-foreground max-w-3xl mx-auto"
+              >
+                Ready to bring your digital vision to life? Let's connect and discuss your next project
+              </motion.p>
+            </div>
+            
+            <div className="grid lg:grid-cols-2 gap-12">
+              {/* Contact Information */}
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="space-y-8"
+              >
+                <h3 className="text-2xl mb-6">Get In Touch</h3>
+                <div className="space-y-6">
+                  {[
+                    { icon: MapPin, label: 'Location', value: 'Alor Setar, Kedah, Malaysia' },
+                    { 
+                      icon: Mail, 
+                      label: 'Email', 
+                      value: ['malitmohamud@gmail.com', 'mowlid@malito.tech'] 
+                    },
+                    { 
+                      icon: Phone, 
+                      label: 'Phone', 
+                      value: ['Malaysia: +6017 258 9925', 'Somaliland: +252 63 423 5966'] 
+                    }
+                  ].map((contact, index) => (
+                    <motion.div
+                      key={contact.label}
+                      initial={{ opacity: 0, x: -30 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.8, delay: index * 0.1 }}
+                      whileHover={{ x: 10 }}
+                      viewport={{ once: true }}
+                      className="flex items-start gap-4 p-4 rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm"
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg flex-shrink-0"
+                      >
+                        <contact.icon className="w-6 h-6 text-white" />
+                      </motion.div>
+                      <div>
+                        <h4 className="text-lg mb-1">{contact.label}</h4>
+                        {Array.isArray(contact.value) ? (
+                          contact.value.map((val, i) => (
+                            <p key={i} className="text-muted-foreground">{val}</p>
+                          ))
+                        ) : (
+                          <p className="text-muted-foreground">{contact.value}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+              
+              {/* Contact Form */}
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+              >
+                <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle>Send a Message</CardTitle>
+                    <CardDescription>
+                      Fill out the form below and I'll get back to you within 24 hours
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleContactSubmit} className="space-y-6">
+                      <motion.div whileFocus={{ scale: 1.02 }}>
+                        <Input
+                          placeholder="Your Name"
+                          value={contactForm.name}
+                          onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
+                          className="bg-background/50"
+                        />
+                      </motion.div>
+                      
+                      <motion.div whileFocus={{ scale: 1.02 }}>
+                        <Input
+                          type="email"
+                          placeholder="Your Email"
+                          value={contactForm.email}
+                          onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                          className="bg-background/50"
+                        />
+                      </motion.div>
+                      
+                      <motion.div whileFocus={{ scale: 1.02 }}>
+                        <Input
+                          placeholder="Your Phone (Optional)"
+                          value={contactForm.phone}
+                          onChange={(e) => setContactForm(prev => ({ ...prev, phone: e.target.value }))}
+                          className="bg-background/50"
+                        />
+                      </motion.div>
+                      
+                      <motion.div whileFocus={{ scale: 1.02 }}>
+                        <Textarea
+                          placeholder="Tell me about your project..."
+                          rows={5}
+                          value={contactForm.message}
+                          onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
+                          className="bg-background/50 resize-none"
+                        />
+                      </motion.div>
+                      
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button 
+                          type="submit" 
+                          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary group"
+                          size="lg"
+                        >
+                          Send Message
+                          <motion.div
+                            className="ml-2"
+                            animate={{ x: [0, 5, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            <ArrowRight className="w-4 h-4" />
+                          </motion.div>
+                        </Button>
+                      </motion.div>
+                    </form>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-border/50 bg-card/30 backdrop-blur-sm">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <div className="flex justify-center space-x-6 mb-6">
+              {[
+                { icon: Github, href: '#', label: 'GitHub' },
+                { icon: Linkedin, href: '#', label: 'LinkedIn' },
+                { icon: Mail, href: 'mailto:malitmohamud@gmail.com', label: 'Email' }
+              ].map((social) => (
+                <motion.a
+                  key={social.label}
+                  href={social.href}
+                  whileHover={{ scale: 1.2, y: -5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors shadow-lg"
+                >
+                  <social.icon className="w-6 h-6" />
+                </motion.a>
+              ))}
+            </div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="text-muted-foreground"
+            >
+              © 2024 Mowlid Mohamud. Crafted with passion and innovation.
+            </motion.p>
+          </motion.div>
+        </div>
+      </footer>
+
+      {/* WhatsApp Float Button */}
+      <motion.a
+        href="https://wa.me/601725889925"
+        target="_blank"
+        rel="noopener noreferrer"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 2, type: "spring", stiffness: 300, damping: 20 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-green-500 text-white rounded-full shadow-2xl flex items-center justify-center z-50 group"
+      >
+        <motion.div
+          animate={{ rotate: [0, 10, -10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+        >
+          <MessageCircle className="w-7 h-7" />
+        </motion.div>
+        
+        {/* Pulse Effect */}
+        <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-20" />
+      </motion.a>
+
+      {/* Cart Dialog */}
+      <AnimatePresence>
+        {showCart && (
+          <Dialog open={showCart} onOpenChange={setShowCart}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Shopping Cart</DialogTitle>
+                <DialogDescription>
+                  {cart.length === 0 ? 'Your cart is empty' : `${cart.reduce((sum, item) => sum + item.quantity, 0)} item(s) in cart`}
+                </DialogDescription>
+              </DialogHeader>
+              
+              {cart.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="py-8 text-center text-muted-foreground"
+                >
+                  Your cart is empty
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-4"
+                >
+                  {cart.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      className="flex items-center justify-between p-4 border rounded-lg bg-card/50"
+                    >
+                      <div className="flex-1">
+                        <h4>{item.title}</h4>
+                        <p className="text-sm text-muted-foreground">${item.price}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <motion.div whileTap={{ scale: 0.9 }}>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => updateQuantity(item.id, -1)}
+                          >
+                            <Minus className="w-4 h-4" />
+                          </Button>
+                        </motion.div>
+                        <span className="w-8 text-center">{item.quantity}</span>
+                        <motion.div whileTap={{ scale: 0.9 }}>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => updateQuantity(item.id, 1)}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </motion.div>
+                        <motion.div whileTap={{ scale: 0.9 }}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeFromCart(item.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  ))}
+                  
+                  <Separator />
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Subtotal ({cart.reduce((sum, item) => sum + item.quantity, 0)} items):</span>
+                      <span>${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-green-600">
+                      <span>Shipping:</span>
+                      <span>FREE 🎉 You qualify for free shipping!</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tax:</span>
+                      <span>${tax.toFixed(2)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span>Total:</span>
+                      <span>${total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button 
+                      onClick={() => {
+                        setShowCart(false);
+                        setShowCheckout(true);
+                      }}
+                      className="w-full bg-gradient-to-r from-primary to-primary/80"
+                    >
+                      Proceed to Checkout
+                    </Button>
+                  </motion.div>
+                  
+                  <div className="text-xs text-muted-foreground text-center space-y-1">
+                    <div>✓ Secure checkout with SSL encryption</div>
+                    <div>✓ 30-day return policy</div>
+                    <div>✓ Worldwide shipping available</div>
+                  </div>
+                </motion.div>
+              )}
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
+
+      {/* Checkout Dialog */}
+      <AnimatePresence>
+        {showCheckout && (
+          <Dialog open={showCheckout} onOpenChange={setShowCheckout}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Checkout</DialogTitle>
+                <DialogDescription>
+                  Complete your order for {cart.reduce((sum, item) => sum + item.quantity, 0)} item(s)
+                </DialogDescription>
+              </DialogHeader>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
+                {/* Contact Information */}
+                <div>
+                  <h3 className="text-lg mb-4">Contact Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      placeholder="Full Name"
+                      value={checkoutData.fullName}
+                      onChange={(e) => setCheckoutData(prev => ({ ...prev, fullName: e.target.value }))}
+                    />
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      value={checkoutData.email}
+                      onChange={(e) => setCheckoutData(prev => ({ ...prev, email: e.target.value }))}
+                    />
+                    <Input
+                      placeholder="Phone"
+                      value={checkoutData.phone}
+                      onChange={(e) => setCheckoutData(prev => ({ ...prev, phone: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                
+                {/* Shipping Address */}
+                <div>
+                  <h3 className="text-lg mb-4">Shipping Address</h3>
+                  <div className="space-y-4">
+                    <Input
+                      placeholder="Street Address"
+                      value={checkoutData.address}
+                      onChange={(e) => setCheckoutData(prev => ({ ...prev, address: e.target.value }))}
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Input
+                        placeholder="City"
+                        value={checkoutData.city}
+                        onChange={(e) => setCheckoutData(prev => ({ ...prev, city: e.target.value }))}
+                      />
+                      <Input
+                        placeholder="Postal Code"
+                        value={checkoutData.postalCode}
+                        onChange={(e) => setCheckoutData(prev => ({ ...prev, postalCode: e.target.value }))}
+                      />
+                      <Input
+                        placeholder="Country"
+                        value={checkoutData.country}
+                        onChange={(e) => setCheckoutData(prev => ({ ...prev, country: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Order Summary */}
+                <div>
+                  <h3 className="text-lg mb-4">Order Summary</h3>
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                    {cart.map((item) => (
+                      <div key={item.id} className="flex justify-between">
+                        <span>Qty: {item.quantity} × {item.title}</span>
+                        <span>${(item.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    ))}
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span>${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-green-600">
+                      <span>Shipping:</span>
+                      <span>FREE</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tax:</span>
+                      <span>${tax.toFixed(2)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span>Total:</span>
+                      <span>${total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                  <h4 className="mb-2">Payment Information</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Your order will be reviewed before payment. Payment instructions will be sent via email after order confirmation.
+                  </p>
+                </div>
+                
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button 
+                    onClick={handleCheckout} 
+                    className="w-full bg-gradient-to-r from-primary to-primary/80" 
+                    size="lg"
+                  >
+                    Place Order
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
+
+      {/* Order Confirmation Dialog */}
+      <AnimatePresence>
+        {showOrderConfirmation && orderDetails && (
+          <Dialog open={showOrderConfirmation} onOpenChange={setShowOrderConfirmation}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-green-950/20 dark:via-background dark:to-blue-950/20">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="text-center space-y-6"
+              >
+                {/* Success Icon */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 20 }}
+                  className="flex justify-center"
+                >
+                  <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-xl">
+                    <CheckCircle className="w-12 h-12 text-white" />
+                  </div>
+                </motion.div>
+
+                {/* Title */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.6 }}
+                >
+                  <h2 className="text-3xl text-green-600 dark:text-green-400 mb-4">Order Confirmed!</h2>
+                  <p className="text-muted-foreground mb-2">
+                    Thank you for your order. We've received your request and it's currently under review.
+                  </p>
+                  <p className="text-sm">
+                    <span className="text-muted-foreground">Order ID: </span>
+                    <span className="font-mono bg-muted/50 px-2 py-1 rounded">{orderDetails.orderId}</span>
+                  </p>
+                </motion.div>
+
+                {/* What Happens Next */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.6 }}
+                  className="bg-card/50 rounded-lg p-6 text-left"
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <Package className="w-5 h-5 text-muted-foreground" />
+                    <h3 className="text-lg">What Happens Next?</h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {[
+                      {
+                        step: "1",
+                        title: "Order Review",
+                        description: "Our team will review your order to ensure artwork availability and quality."
+                      },
+                      {
+                        step: "2", 
+                        title: "Email Confirmation",
+                        description: "You'll receive an email with order status updates and payment instructions."
+                      },
+                      {
+                        step: "3",
+                        title: "Secure Packaging & Shipping", 
+                        description: "Once approved and payment is received, we'll carefully package and ship your artwork."
+                      }
+                    ].map((item, index) => (
+                      <motion.div
+                        key={item.step}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.8 + index * 0.1, duration: 0.5 }}
+                        className="flex gap-4"
+                      >
+                        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm flex-shrink-0">
+                          {item.step}
+                        </div>
+                        <div>
+                          <h4 className="font-medium mb-1">{item.title}</h4>
+                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Order Summary */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1, duration: 0.6 }}
+                  className="grid md:grid-cols-2 gap-6 text-left"
+                >
+                  {/* Order Items */}
+                  <div className="bg-card/50 rounded-lg p-4">
+                    <h4 className="mb-3">Order Items</h4>
+                    <div className="space-y-3">
+                      {orderDetails.items.map((item, index) => (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 1.2 + index * 0.1, duration: 0.5 }}
+                          className="flex items-center gap-3 p-3 bg-background/50 rounded-lg"
+                        >
+                          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <Star className="w-6 h-6 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm">Qty: {item.quantity} × ${item.price}</p>
+                            <p className="text-xs text-muted-foreground">{item.title}</p>
+                          </div>
+                          <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                        </motion.div>
+                      ))}
+                      
+                      <Separator />
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Subtotal:</span>
+                          <span>${orderDetails.subtotal.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-green-600">
+                          <span>Shipping:</span>
+                          <span>FREE</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tax:</span>
+                          <span>${orderDetails.tax.toFixed(2)}</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between text-lg">
+                          <span>Total:</span>
+                          <span>${orderDetails.total.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Shipping Information */}
+                  <div className="bg-card/50 rounded-lg p-4">
+                    <h4 className="mb-3">Shipping Information</h4>
+                    <div className="space-y-3">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.4, duration: 0.5 }}
+                      >
+                        <h5 className="text-sm">Contact</h5>
+                        <div className="text-sm text-muted-foreground space-y-1">
+                          <p>{orderDetails.customer.name}</p>
+                          <p>{orderDetails.customer.email}</p>
+                          <p>{orderDetails.customer.phone}</p>
+                        </div>
+                      </motion.div>
+                      
+                      {orderDetails.address.street && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 1.5, duration: 0.5 }}
+                        >
+                          <h5 className="text-sm">Address</h5>
+                          <div className="text-sm text-muted-foreground">
+                            <p>{orderDetails.address.street}</p>
+                            <p>{orderDetails.address.city} {orderDetails.address.postal}</p>
+                            <p>{orderDetails.address.country}</p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Action Buttons */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.6, duration: 0.6 }}
+                  className="flex flex-col sm:flex-row gap-4 pt-4"
+                >
+                  <Button
+                    onClick={() => setShowOrderConfirmation(false)}
+                    className="flex-1 bg-gradient-to-r from-primary to-primary/80"
+                  >
+                    Continue Shopping
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => scrollToSection('contact')}
+                    className="flex-1"
+                  >
+                    Contact Support
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
