@@ -1,0 +1,91 @@
+{
+  "name": "mowlid-portfolio",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Modern, animated portfolio website for Mowlid Mohamud - Full Stack Developer, Social Worker & Community Builder",
+  "keywords": [
+    "portfolio",
+    "react",
+    "typescript",
+    "tailwind",
+    "framer-motion",
+    "supabase",
+    "full-stack",
+    "developer"
+  ],
+  "author": {
+    "name": "Mowlid Mohamud",
+    "email": "malitmohamud@gmail.com",
+    "url": "https://mowlid.dev"
+  },
+  "scripts": {
+    "dev": "vite",
+    "server": "node server.js",
+    "dev:all": "concurrently \"npm run server\" \"npm run dev\"",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-separator": "^1.1.2",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-toast": "^1.1.5",
+    "@supabase/supabase-js": "^2.49.8",
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/nodemailer": "^7.0.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "framer-motion": "^12.23.22",
+    "lucide-react": "^0.487.0",
+    "motion": "^10.18.0",
+    "nodemailer": "^7.0.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.55.0",
+    "sonner": "^2.0.3",
+    "tailwind-merge": "^2.0.0",
+    "tailwindcss": "^3.4.17"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^9.2.1",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "postcss": "^8.4.32",
+    "prettier": "^3.1.1",
+    "supabase": "^1.142.2",
+    "typescript": "^5.2.2",
+    "vite": "^5.0.8"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
