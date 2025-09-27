@@ -9,6 +9,9 @@ import { Separator } from './components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { toast, Toaster } from 'sonner';
 import { sendContactEmail as sendEmailContact, sendOrderEmail as sendEmailOrder } from './utils/emailService';
+import DatabaseTest from './components/DatabaseTest';
+import { getServices, getProjects } from './utils/supabase/database';
+import { Service as DbService, Project as DbProject } from './utils/supabase/client';
 import { 
   Github, 
   Linkedin, 
@@ -56,6 +59,11 @@ interface Service {
   category: string;
 }
 
+// Extended interface for database services
+interface ServiceFromDB extends DbService {
+  // Convert database service to UI service format
+}
+
 interface CartItem extends Service {
   quantity: number;
 }
@@ -88,96 +96,6 @@ interface OrderConfirmation {
   subtotal: number;
   tax: number;
 }
-
-const services: Service[] = [
-  {
-    id: 'web-design',
-    title: 'Web Design',
-    description: 'Custom website design with modern UI/UX principles',
-    price: 459,
-    category: 'Design'
-  },
-  {
-    id: 'ui-ux-design',
-    title: 'UI/UX Design',
-    description: 'User interface and experience design for web and mobile',
-    price: 399,
-    category: 'Design'
-  },
-  {
-    id: 'ai-consulting',
-    title: 'AI & Business Consulting in Tech',
-    description: 'Strategic consulting for AI implementation and tech solutions',
-    price: 599,
-    category: 'Consulting'
-  },
-  {
-    id: 'digital-nomad',
-    title: 'Digital Nomad Support',
-    description: 'Complete support for remote work and digital lifestyle',
-    price: 299,
-    category: 'Support'
-  }
-];
-
-const projects = [
-  { 
-    name: 'DEH - Digital Empowerment Hub', 
-    description: 'Bridging the Digital Divide, Empowering Youth through technology education', 
-    image: dehProjectImage, 
-    tech: ['React', 'Next.js', 'TailwindCSS'],
-    url: 'https://deh-frontend.vercel.app/' 
-  },
-  { 
-    name: 'Nujum Arts', 
-    description: 'Art gallery platform - Make Your Home Amazing with Art', 
-    image: nujumArtsImage, 
-    tech: ['React', 'Sanity.io', 'E-commerce'],
-    url: '#' 
-  },
-  { 
-    name: 'Barkulanhub.com', 
-    description: 'Community platform for entrepreneurship and growth - Nurturing Community', 
-    image: barkulanHubImage, 
-    tech: ['React', 'Node.js', 'MongoDB'],
-    url: 'https://barkulanhub.com' 
-  },
-  { 
-    name: 'NESDA USA', 
-    description: 'Together we preserve our roots and empower our future - North East Somali Development Association', 
-    image: nesdaImage, 
-    tech: ['Next.js', 'TailwindCSS'],
-    url: '#' 
-  },
-  { 
-    name: 'Barkulan Job Finder', 
-    description: 'Job search platform connecting professionals with opportunities', 
-    image: 'https://images.unsplash.com/photo-1664651205193-bfb6bfdd3b09?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqb2IlMjBmaW5kZXIlMjBwbGF0Zm9ybSUyMHJlY3J1aXRtZW50fGVufDF8fHx8MTc1ODg3NjY0M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral', 
-    tech: ['Vue.js', 'Firebase'],
-    url: '#' 
-  },
-  { 
-    name: 'Great AI Hackathon', 
-    description: 'Event platform for AI hackathons and innovation competitions', 
-    image: 'https://images.unsplash.com/photo-1560523159-94c9d18bcf27?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhaSUyMGhhY2thdGhvbiUyMHRlY2hub2xvZ3klMjBldmVudHxlbnwxfHx8fDE3NTg4NzY2NDN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral', 
-    tech: ['React', 'Python', 'AI/ML'],
-    url: '#' 
-  },
-  { 
-    name: 'Waapo.org', 
-    description: 'Educational platform for online learning and skill development', 
-    image: 'https://images.unsplash.com/photo-1755548413928-4aaeba7c740e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3YWFwbyUyMGVkdWNhdGlvbiUyMHBsYXRmb3JtJTIwbGVhcm5pbmd8ZW58MXx8fHwxNzU4ODc2NjQzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral', 
-    tech: ['Angular', 'Express'],
-    url: 'https://waapo.org' 
-  },
-  { 
-    name: 'Mubarik Charity', 
-    description: 'Charity organization website for community support and donations', 
-    image: 'https://images.unsplash.com/photo-1713164833944-7c1e13aaac55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtdWJhcmlrJTIwY2hhcml0eSUyMG9yZ2FuaXphdGlvbnxlbnwxfHx8fDE3NTg4NzY2NDN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral', 
-    tech: ['WordPress', 'PHP'],
-    url: '#' 
-  }
-];
 
 const FloatingIcon = ({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) => (
   <motion.div
@@ -219,6 +137,7 @@ const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: nu
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
+  const [showDatabaseTest, setShowDatabaseTest] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -229,6 +148,12 @@ export default function App() {
     fullName: '', email: '', phone: '', address: '', city: '', postalCode: '', country: ''
   });
 
+  // Database state
+  const [dbServices, setDbServices] = useState<DbService[]>([]);
+  const [dbProjects, setDbProjects] = useState<DbProject[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
+  const [projectsLoading, setProjectsLoading] = useState(true);
+
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -236,6 +161,69 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [darkMode]);
+
+  // Load services from database
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        setServicesLoading(true);
+        const services = await getServices();
+        setDbServices(services);
+      } catch (error) {
+        console.error('Error loading services:', error);
+        toast.error('Failed to load services');
+      } finally {
+        setServicesLoading(false);
+      }
+    };
+
+    loadServices();
+  }, []);
+
+  // Load projects from database
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        setProjectsLoading(true);
+        const projects = await getProjects();
+        setDbProjects(projects);
+      } catch (error) {
+        console.error('Error loading projects:', error);
+        toast.error('Failed to load projects');
+      } finally {
+        setProjectsLoading(false);
+      }
+    };
+
+    loadProjects();
+  }, []);
+
+  // Convert database services to UI format
+  const convertDbServiceToService = (dbService: DbService): Service => {
+    // Extract price number from price string (e.g., "$500-$2000" -> 500)
+    const priceMatch = dbService.price.match(/\$(\d+)/);
+    const price = priceMatch ? parseInt(priceMatch[1]) : 0;
+
+    return {
+      id: dbService.id.toString(),
+      title: dbService.name,
+      description: dbService.description,
+      price: price,
+      category: 'Service' // Default category since DB doesn't have this field
+    };
+  };
+
+  // Convert database services for the services section
+  const services: Service[] = dbServices.map(convertDbServiceToService);
+
+  // Use database projects directly (add fallback structure)  
+  const projects = dbProjects.map(project => ({
+    name: project.name,
+    description: project.description,
+    image: project.image || '/images/default-project.jpg',
+    tech: project.technology.split(', '),
+    url: project.is_live ? (project.link || '#') : '#'
+  }));
 
   const addToCart = (service: Service) => {
     setCart(prev => {
@@ -376,6 +364,33 @@ export default function App() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <Toaster />
+      
+      {/* Database Test - Remove this after testing */}
+      {showDatabaseTest && (
+        <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50 overflow-auto">
+          <div className="p-4">
+            <Button 
+              onClick={() => setShowDatabaseTest(false)}
+              className="mb-4"
+            >
+              ← Back to Portfolio
+            </Button>
+            <DatabaseTest />
+          </div>
+        </div>
+      )}
+      
+      {/* Database Test Button - Remove this after testing */}
+      <div className="fixed top-4 right-4 z-40">
+        <Button 
+          onClick={() => setShowDatabaseTest(true)}
+          variant="outline"
+          size="sm"
+          className="bg-blue-500 text-white hover:bg-blue-600"
+        >
+          Test Database
+        </Button>
+      </div>
       
       {/* Animated Background Elements */}
       <div className="fixed inset-0 pointer-events-none">
@@ -1120,7 +1135,28 @@ export default function App() {
             </div>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {projects.map((project, index) => (
+              {projectsLoading ? (
+                // Loading skeleton for projects
+                [...Array(6)].map((_, index) => (
+                  <div key={index} className="animate-pulse">
+                    <Card className="overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm h-full">
+                      <div className="aspect-video bg-gray-200"></div>
+                      <div className="p-6">
+                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-3"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                        <div className="flex gap-2 mb-4">
+                          <div className="h-6 bg-gray-200 rounded w-16"></div>
+                          <div className="h-6 bg-gray-200 rounded w-16"></div>
+                          <div className="h-6 bg-gray-200 rounded w-16"></div>
+                        </div>
+                        <div className="h-10 bg-gray-200 rounded w-full"></div>
+                      </div>
+                    </Card>
+                  </div>
+                ))
+              ) : projects.length > 0 ? (
+                projects.map((project, index) => (
                 <motion.div
                   key={project.name}
                   initial={{ opacity: 0, y: 50 }}
@@ -1200,7 +1236,13 @@ export default function App() {
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   </Card>
                 </motion.div>
-              ))}
+                ))
+              ) : (
+                // Empty state for projects
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No projects available. Add some projects in your Supabase dashboard!</p>
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
@@ -1238,7 +1280,25 @@ export default function App() {
             </div>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {services.map((service, index) => (
+              {servicesLoading ? (
+                // Loading skeleton for services
+                [...Array(4)].map((_, index) => (
+                  <div key={index} className="animate-pulse">
+                    <Card className="border-border/50 bg-card/50 backdrop-blur-sm h-full">
+                      <CardHeader>
+                        <div className="h-6 bg-gray-200 rounded w-20 mb-4"></div>
+                        <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                      </CardHeader>
+                      <CardFooter>
+                        <div className="h-10 bg-gray-200 rounded w-full"></div>
+                      </CardFooter>
+                    </Card>
+                  </div>
+                ))
+              ) : services.length > 0 ? (
+                services.map((service, index) => (
                 <motion.div
                   key={service.id}
                   initial={{ opacity: 0, y: 50 }}
@@ -1307,7 +1367,13 @@ export default function App() {
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   </Card>
                 </motion.div>
-              ))}
+                ))
+              ) : (
+                // Empty state for services
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No services available. Add some services in your Supabase dashboard!</p>
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
