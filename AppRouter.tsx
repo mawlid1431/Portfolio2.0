@@ -5,6 +5,7 @@ import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
 import DatabaseDebug from './components/DatabaseDebug';
 import SimpleTest from './components/SimpleTest';
+import EmailTest from './components/EmailTest';
 import { Toaster } from 'sonner';
 
 const AppRouter: React.FC = () => {
@@ -57,6 +58,9 @@ const AppRouter: React.FC = () => {
         
         {/* Simple test route - for basic testing */}
         <Route path="/test" element={<SimpleTest />} />
+        
+        {/* Email test route - for testing email functionality */}
+        <Route path="/email-test" element={<EmailTest />} />
         
         {/* Redirect any unknown routes to home */}
         <Route path="*" element={<Navigate to="/" replace />} />

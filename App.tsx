@@ -40,12 +40,13 @@ import {
   CheckCircle,
   User,
   Menu,
-  X
+  X,
+  Clock
 } from 'lucide-react';
 
 // Import your original profile images
-const profileImage1 = "/images/deh-screenshot.jpg"; // DEH project screenshot
-const profileImage2 = "/images/mowlid-profile.jpg"; // Your personal profile photo
+const profileImage1 = "/images/img_1.jpg"; // Main profile picture
+const profileImage2 = "/images/img_2.jpg"; // Mowlid Mohamud in office
 
 // Import your actual project images
 const dehProjectImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzOGZmIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ERUggUHJvamVjdDwvdGV4dD4KPC9zdmc+Cg==";
@@ -140,6 +141,8 @@ const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: nu
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [showServiceDetails, setShowServiceDetails] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -1419,8 +1422,13 @@ export default function App() {
                   transition={{ duration: 0.8, delay: index * 0.1 }}
                   whileHover={{ y: -10, scale: 1.02 }}
                   viewport={{ once: true }}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setSelectedService(service);
+                    setShowServiceDetails(true);
+                  }}
                 >
-                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden group h-full">
+                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden group h-full hover:border-primary/50 transition-colors">
                     <CardHeader>
                       <div className="flex justify-between items-start mb-4">
                         <Badge 
@@ -1439,17 +1447,17 @@ export default function App() {
                       <CardTitle className="group-hover:text-primary transition-colors">
                         {service.title}
                       </CardTitle>
-                      <CardDescription className="leading-relaxed">
+                      <CardDescription className="leading-relaxed line-clamp-3">
                         {service.description}
                       </CardDescription>
                     </CardHeader>
                     
                     <CardContent>
                       <motion.div 
-                        className="text-3xl mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+                        className="text-2xl mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
                         whileHover={{ scale: 1.1 }}
                       >
-                        ${service.price}
+                        {service.price}
                       </motion.div>
                     </CardContent>
                     
@@ -1460,19 +1468,29 @@ export default function App() {
                         className="w-full"
                       >
                         <Button 
-                          onClick={() => addToCart(service)}
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent card click
+                            addToCart(service);
+                          }}
                           className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary group"
                         >
                           <ShoppingCart className="w-4 h-4 mr-2" />
-                          Add to Cart
+                          Quick Add
                           <motion.div
-                            className="ml-2 opacity-0 group-hover:opacity-100"
+                            className="ml-auto opacity-0 group-hover:opacity-100"
                             animate={{ x: [0, 5, 0] }}
                             transition={{ duration: 1.5, repeat: Infinity }}
                           >
                             <ArrowRight className="w-4 h-4" />
                           </motion.div>
                         </Button>
+                        
+                        <div className="text-center mt-2 text-xs text-muted-foreground">
+                          Click card for details
+                        </div>
+                        <div className="text-center mt-2 text-xs text-muted-foreground">
+                          Click card for details
+                        </div>
                       </motion.div>
                     </CardFooter>
                     
@@ -2158,6 +2176,105 @@ export default function App() {
                     Contact Support
                   </Button>
                 </motion.div>
+              </motion.div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
+
+      {/* Service Details Modal */}
+      <AnimatePresence>
+        {showServiceDetails && selectedService && (
+          <Dialog open={showServiceDetails} onOpenChange={setShowServiceDetails}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+              >
+                <DialogHeader className="text-left">
+                  <DialogTitle className="text-2xl font-bold mb-2">
+                    {selectedService.title}
+                  </DialogTitle>
+                  <div className="flex items-center gap-3 mb-4">
+                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                      {selectedService.category}
+                    </Badge>
+                    <span className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                      {selectedService.price}
+                    </span>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-6">
+                  {/* Detailed Description */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Service Overview</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {selectedService.description}
+                    </p>
+                  </div>
+
+                  {/* What's Included */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">What's Included</h3>
+                    <ul className="space-y-2">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span>Professional consultation and planning</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span>Modern design and development</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span>Testing and quality assurance</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span>Documentation and training</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span>30 days of support after delivery</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Timeline */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Estimated Timeline</h3>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>2-4 weeks delivery time</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-4 border-t">
+                    <Button
+                      onClick={() => {
+                        addToCart(selectedService);
+                        setShowServiceDetails(false);
+                        toast.success('Service added to cart!');
+                      }}
+                      className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      Add to Cart - {selectedService.price}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => scrollToSection('contact')}
+                      className="flex-1"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Contact First
+                    </Button>
+                  </div>
+                </div>
               </motion.div>
             </DialogContent>
           </Dialog>

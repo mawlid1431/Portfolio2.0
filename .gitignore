@@ -116,3 +116,53 @@ supabase-permissions.sql
 # Database credentials and sensitive data
 .env.secrets
 auth-config.json
+
+# Email server configuration files
+email-server.js.backup
+*.key
+*.pem
+*.p12
+
+# Gmail app passwords and SMTP configs
+smtp-config.json
+email-credentials.json
+
+# Backup files containing sensitive data
+*.backup
+*.bak
+
+# Documentation with sensitive info
+EMAIL_SETUP_GUIDE.md
+
+# Any files containing passwords or API keys
+*password*
+*secret*
+*credential*
+*token*
+
+# Supabase specific sensitive files
+supabase-setup.sql
+database-setup.sql
+supabase-permissions.sql
+
+# Project-specific sensitive files
+database-manager.ts
+populate-database.ts
+email-server.js
+email-server-package.json
+
+# Documentation files that might contain sensitive info
+EMAIL_SETUP_GUIDE.md
+SECURITY_SETUP.md
+DATABASE_SETUP_COMPLETE.md
+ADMIN_SYSTEM_COMPLETE.md
+
+# Image files (if they contain sensitive info)
+*.JPG
+*.jpeg
+*.png
+*.jpg
+*.gif
+
+# Server configuration files
+server.js
