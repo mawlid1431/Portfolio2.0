@@ -9,7 +9,6 @@ import { Separator } from './components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { toast, Toaster } from 'sonner';
 import { sendContactEmail as sendEmailContact, sendOrderEmail as sendEmailOrder } from './utils/emailService';
-import DatabaseTest from './components/DatabaseTest';
 import { getServices, getProjects } from './utils/supabase/database';
 import { Service as DbService, Project as DbProject } from './utils/supabase/client';
 import { 
@@ -39,7 +38,9 @@ import {
   ChevronDown,
   Package,
   CheckCircle,
-  User
+  User,
+  Menu,
+  X
 } from 'lucide-react';
 
 // Import your original profile images
@@ -138,7 +139,7 @@ const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: nu
 
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [showDatabaseTest, setShowDatabaseTest] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -198,6 +199,31 @@ export default function App() {
 
     loadProjects();
   }, []);
+
+  // Close mobile menu on window resize (when switching to desktop)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
 
   // Convert database services to UI format
   const convertDbServiceToService = (dbService: DbService): Service => {
@@ -366,32 +392,6 @@ export default function App() {
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <Toaster />
       
-      {/* Database Test - Remove this after testing */}
-      {showDatabaseTest && (
-        <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50 overflow-auto">
-          <div className="p-4">
-            <Button 
-              onClick={() => setShowDatabaseTest(false)}
-              className="mb-4"
-            >
-              ← Back to Portfolio
-            </Button>
-            <DatabaseTest />
-          </div>
-        </div>
-      )}
-      
-      {/* Database Test Button - Remove this after testing */}
-      <div className="fixed top-4 right-4 z-40">
-        <Button 
-          onClick={() => setShowDatabaseTest(true)}
-          variant="outline"
-          size="sm"
-          className="bg-blue-500 text-white hover:bg-blue-600"
-        >
-          Test Database
-        </Button>
-      </div>
       
       {/* Animated Background Elements */}
       <div className="fixed inset-0 pointer-events-none">
@@ -443,6 +443,18 @@ export default function App() {
             </nav>
 
             <div className="flex items-center space-x-4">
+              {/* Mobile Menu Button */}
+              <div className="md:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="text-foreground hover:text-primary hover:bg-muted"
+                >
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </Button>
+              </div>
+
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <Button
                   variant="ghost"
@@ -460,8 +472,8 @@ export default function App() {
                 </Button>
               </motion.div>
 
-              {/* Admin Login Button */}
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              {/* Admin Login Button - Hidden on mobile */}
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="hidden sm:block">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -473,7 +485,8 @@ export default function App() {
                 </Button>
               </motion.div>
               
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              {/* Cart Button - Hidden on mobile */}
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="hidden sm:block">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -501,6 +514,92 @@ export default function App() {
           </div>
         </div>
       </motion.header>
+
+      {/* Mobile Navigation Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            
+            {/* Mobile Menu */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "tween", duration: 0.3 }}
+              className="fixed top-0 right-0 h-full w-64 bg-background/95 backdrop-blur-lg border-l border-border z-50 md:hidden"
+            >
+              <div className="flex flex-col h-full p-6">
+                {/* Close button */}
+                <div className="flex justify-end mb-8">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-foreground hover:text-primary hover:bg-muted"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                {/* Navigation Links */}
+                <nav className="flex flex-col space-y-6">
+                  {['about', 'experience', 'projects', 'services', 'contact'].map((item) => (
+                    <motion.button
+                      key={item}
+                      whileHover={{ x: 10 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        scrollToSection(item);
+                        setMobileMenuOpen(false);
+                      }}
+                      className="capitalize text-left text-lg font-medium text-foreground hover:text-primary transition-colors duration-200 py-2"
+                    >
+                      {item}
+                    </motion.button>
+                  ))}
+                </nav>
+
+                {/* Mobile Actions */}
+                <div className="mt-auto space-y-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      window.location.href = '/admin';
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full justify-start"
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Admin Login
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCart(true)}
+                    className="w-full justify-start relative"
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Cart
+                    {cart.length > 0 && (
+                      <Badge className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary text-primary-foreground">
+                        {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                      </Badge>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-primary/5 to-secondary/10 overflow-hidden">
