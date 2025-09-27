@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS services (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Projects Table 
+-- Projects Table
 CREATE TABLE IF NOT EXISTS projects (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -50,6 +50,7 @@ CREATE POLICY "Allow public read access on projects" ON projects FOR SELECT USIN
 ## Step 3: Add Your Own Data
 
 ### Option 1: Using Supabase Table Editor
+
 1. Go to your Supabase project: https://supabase.com/dashboard/project/stfrwzveehgxhwwqfbtt
 2. Click "Table Editor"
 3. Select "services" or "projects" table
@@ -57,15 +58,18 @@ CREATE POLICY "Allow public read access on projects" ON projects FOR SELECT USIN
 5. Add your data and save
 
 ### Option 2: Using SQL
+
 Add services:
+
 ```sql
-INSERT INTO services (name, price, description) VALUES 
+INSERT INTO services (name, price, description) VALUES
 ('Your Service Name', '$100-$500', 'Your service description');
 ```
 
 Add projects:
+
 ```sql
-INSERT INTO projects (name, description, is_live, link, image, technology, official_link) VALUES 
+INSERT INTO projects (name, description, is_live, link, image, technology, official_link) VALUES
 ('Your Project Name', 'Project description', true, 'https://your-project.com', 'https://image-url.jpg', 'React, Node.js', 'https://github.com/your-repo');
 ```
 
@@ -78,7 +82,7 @@ Your portfolio is now connected to Supabase! Any data you add will automatically
 ✅ **Add new services** - They'll appear in the Services section  
 ✅ **Add new projects** - They'll appear in the Projects section  
 ✅ **Update existing data** - Changes reflect immediately  
-✅ **Delete data** - Items will be removed from your site  
+✅ **Delete data** - Items will be removed from your site
 
 ### Managing Your Data:
 
@@ -89,6 +93,7 @@ Your portfolio is now connected to Supabase! Any data you add will automatically
 ---
 
 **Need Help?**
+
 - Check the browser console for any errors
 - Use the "Test Database" button to verify connections
 - Ensure your .env.local file has the correct Supabase credentials

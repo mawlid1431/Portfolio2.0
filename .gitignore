@@ -110,3 +110,9 @@ email-server.pid
 # Sensitive configuration files
 config/production.json
 config/local.json
+supabase-permissions.sql
+*.sql
+
+# Database credentials and sensitive data
+.env.secrets
+auth-config.json

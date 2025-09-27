@@ -38,7 +38,8 @@ import {
   Sparkles,
   ChevronDown,
   Package,
-  CheckCircle
+  CheckCircle,
+  User
 } from 'lucide-react';
 
 // Import your original profile images
@@ -456,6 +457,19 @@ export default function App() {
                   >
                     {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                   </motion.div>
+                </Button>
+              </motion.div>
+
+              {/* Admin Login Button */}
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => window.location.href = '/admin'}
+                  className="relative text-foreground hover:text-primary hover:bg-muted"
+                  title="Admin Login"
+                >
+                  <User className="h-4 w-4" />
                 </Button>
               </motion.div>
               
