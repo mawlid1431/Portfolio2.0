@@ -199,7 +199,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
                 <div className="text-center text-xs text-gray-500 mt-3">
                   <p>Demo credentials:</p>
                   <p>Email: admin@malit.dev</p>
-                  <p>Password: MowlidAdmin2025!</p>
+                  <p>Password: Contact admin for password</p>
                 </div>
               </div>
             </CardContent>
