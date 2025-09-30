@@ -159,8 +159,8 @@ start-system.bat
 vite-email.config.ts
 package-temp.json
 
-# Personal images - add your own
-public/images/*.jpg
-public/images/*.jpeg
-public/images/*.png
-public/images/*.gif
+# Personal images - add your own (placeholder images are allowed)
+# public/images/*.jpg
+# public/images/*.jpeg
+# public/images/*.png
+# public/images/*.gif
