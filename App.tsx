@@ -8,8 +8,7 @@ import { Badge } from './components/ui/badge';
 import { Separator } from './components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { toast, Toaster } from 'sonner';
-import { sendContactEmail as sendEmailContact, sendOrderEmail as sendEmailOrder } from './utils/emailService';
-import { getServices, getProjects } from './utils/supabase/database';
+import { getServices, getProjects, addOrder } from './utils/supabase/database';
 import { Service as DbService, Project as DbProject } from './utils/supabase/client';
 import { 
   Github, 
@@ -41,12 +40,13 @@ import {
   User,
   Menu,
   X,
-  Clock
+  Clock,
+  Instagram
 } from 'lucide-react';
 
-// Import your original profile images
-const profileImage1 = "/images/img_1.jpg"; // Main profile picture
-const profileImage2 = "/images/img_2.jpg"; // Mowlid Mohamud in office
+// Import your actual profile images (swapped)
+const profileImage1 = "/images/profile-image.jpg"; // Hero section image (now img_2)
+const profileImage2 = "/images/hero-image.jpg"; // Profile image (now img_1)
 
 // Import your actual project images
 const dehProjectImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzOGZmIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ERUggUHJvamVjdDwvdGV4dD4KPC9zdmc+Cg==";
@@ -289,48 +289,24 @@ export default function App() {
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
 
-  const sendOrderEmail = async (orderData: OrderConfirmation) => {
-    try {
-      const emailData = {
-        orderId: orderData.orderId,
-        customer: orderData.customer,
-        address: orderData.address,
-        items: orderData.items,
-        subtotal: orderData.subtotal,
-        tax: orderData.tax,
-        total: orderData.total
-      };
-
-      const emailSent = await sendEmailOrder(emailData);
-      if (emailSent) {
-        console.log('✅ Order email sent successfully to malitmohamud@gmail.com');
-      } else {
-        console.error('❌ Failed to send order email');
-      }
-    } catch (error) {
-      console.error('Error sending order email:', error);
-    }
+  // Save contact to database
+  const sendOrderNotification = async (orderData: OrderConfirmation) => {
+    console.log('Order submitted:', orderData.orderId);
   };
 
-  const sendContactEmail = async (contactData: any) => {
+  const sendContactNotification = async (contactData: any) => {
     try {
-      const emailSent = await sendEmailContact({
+      const { addContact } = await import('./utils/supabase/database');
+      await addContact({
         name: contactData.name,
         email: contactData.email,
         phone: contactData.phone,
-        message: contactData.message
+        message: contactData.message,
+        status: 'new'
       });
-      
-      if (emailSent) {
-        toast.success('Message sent successfully! I\'ll get back to you within 24 hours.');
-        console.log('✅ Contact email sent successfully to malitmohamud@gmail.com');
-      } else {
-        toast.error('Error sending message. Please try again or email me directly.');
-        console.error('❌ Failed to send contact email');
-      }
+      console.log('Contact saved to database');
     } catch (error) {
-      console.error('Error sending contact email:', error);
-      toast.error('Error sending message. Please try again.');
+      console.error('Error saving contact:', error);
     }
   };
 
@@ -361,30 +337,66 @@ export default function App() {
       total
     };
 
-    // Send email notification
-    await sendOrderEmail(orderData);
-    
-    // Set order details and show confirmation
-    setOrderDetails(orderData);
-    setShowOrderConfirmation(true);
-    
-    // Clear cart and close checkout
-    setCart([]);
-    setShowCheckout(false);
-    setShowCart(false);
-    setCheckoutData({
-      fullName: '', email: '', phone: '', address: '', city: '', postalCode: '', country: ''
-    });
+    try {
+      // Save order to database
+      await addOrder({
+        order_id: orderId,
+        customer_name: checkoutData.fullName,
+        customer_email: checkoutData.email,
+        customer_phone: checkoutData.phone,
+        address_street: checkoutData.address,
+        address_city: checkoutData.city,
+        address_postal: checkoutData.postalCode,
+        address_country: checkoutData.country,
+        items: cart.map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          price: item.price,
+          quantity: item.quantity,
+          category: item.category
+        })),
+        subtotal,
+        tax,
+        total,
+        status: 'pending'
+      });
+
+      // Send order notification
+      await sendOrderNotification(orderData);
+      
+      // Set order details and show confirmation
+      setOrderDetails(orderData);
+      setShowOrderConfirmation(true);
+      
+      // Clear cart and close checkout
+      setCart([]);
+      setShowCheckout(false);
+      setShowCart(false);
+      setCheckoutData({
+        fullName: '', email: '', phone: '', address: '', city: '', postalCode: '', country: ''
+      });
+      
+      toast.success('Order placed successfully!');
+    } catch (error) {
+      console.error('Error saving order:', error);
+      toast.error('Failed to save order. Please try again.');
+    }
   };
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactForm.name || !contactForm.email || !contactForm.message) {
       toast.error('Please fill in all required fields');
       return;
     }
-    sendContactEmail(contactForm);
+    
+    // Send contact notification
+    await sendContactNotification(contactForm);
+    
+    // Clear the form
     setContactForm({ name: '', email: '', phone: '', message: '' });
+    toast.success('Message sent successfully!');
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -653,7 +665,7 @@ export default function App() {
                     >
                       <Sparkles className="w-6 h-6 text-primary" />
                     </motion.div>
-                    <span className="text-primary">Welcome to my digital world</span>
+                    <span className="text-primary dark:text-primary">Welcome to my digital world</span>
                   </div>
                   
                   <h1 className="text-4xl md:text-6xl lg:text-7xl">
@@ -662,7 +674,7 @@ export default function App() {
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4, duration: 0.8 }}
-                        className="bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent"
+                        className="bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent dark:from-primary dark:via-primary/80 dark:to-secondary"
                       >
                         Crafting
                       </motion.span>
@@ -672,7 +684,7 @@ export default function App() {
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6, duration: 0.8 }}
-                        className="bg-gradient-to-r from-secondary via-primary/60 to-primary bg-clip-text text-transparent"
+                        className="bg-gradient-to-r from-secondary via-primary/60 to-primary bg-clip-text text-transparent dark:from-secondary dark:via-primary/60 dark:to-primary"
                       >
                         Digital
                       </motion.span>
@@ -682,7 +694,7 @@ export default function App() {
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.8, duration: 0.8 }}
-                        className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
+                        className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent dark:from-primary dark:to-accent"
                       >
                         Excellence
                       </motion.span>
@@ -694,11 +706,11 @@ export default function App() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1, duration: 0.8 }}
-                  className="text-xl text-muted-foreground max-w-lg leading-relaxed"
+                  className="text-xl text-foreground/80 dark:text-muted-foreground max-w-lg leading-relaxed"
                 >
                   Full Stack Developer • Community Builder • Digital Innovator
                   <br />
-                  <span className="text-primary">Transforming ideas into impactful digital solutions</span>
+                  <span className="text-primary dark:text-primary font-medium">Transforming ideas into impactful digital solutions</span>
                 </motion.p>
 
                 <motion.div
@@ -963,8 +975,18 @@ export default function App() {
             >
               <div className="relative">
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="w-64 h-80 rounded-2xl overflow-hidden shadow-2xl border-4 border-background"
+                  whileHover={{ scale: 1.08, rotateY: 5 }}
+                  whileTap={{ scale: 0.98 }}
+                  animate={{ 
+                    y: [0, -8, 0],
+                    rotateX: [0, 2, 0, -2, 0]
+                  }}
+                  transition={{ 
+                    y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                    rotateX: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+                    hover: { duration: 0.3 }
+                  }}
+                  className="w-80 h-96 rounded-2xl overflow-hidden shadow-2xl border-4 border-background cursor-pointer"
                 >
                   <img 
                     src={profileImage2} 
@@ -972,6 +994,22 @@ export default function App() {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent" />
+                  
+                  {/* Hover overlay */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    whileHover={{ opacity: 1 }}
+                    className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center"
+                  >
+                    <motion.div
+                      initial={{ scale: 0, rotate: 0 }}
+                      whileHover={{ scale: 1, rotate: 360 }}
+                      transition={{ duration: 0.5 }}
+                      className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
+                    >
+                      <Star className="w-8 h-8 text-white" />
+                    </motion.div>
+                  </motion.div>
                 </motion.div>
                 
                 {/* Floating Badge */}
@@ -1025,23 +1063,50 @@ export default function App() {
                 {
                   icon: GraduationCap,
                   title: 'Bachelor of Computer Science',
-                  institution: 'Asia Metropolitan International University (Malaysia)',
+                  institution: 'Albukhary International University (Malaysia)',
                   status: 'Current',
-                  color: 'from-blue-500 to-cyan-500'
+                  color: 'from-blue-500 to-cyan-500',
+                  link: 'https://aiu.edu.my/'
+                },
+                {
+                  icon: Award,
+                  title: 'Google Project Management Certificate',
+                  institution: 'Google\'s professional certification program focused on project planning, agile methodologies, stakeholder management, risk assessment, and leadership in real-world projects.',
+                  status: 'Completed (Dec 2023 – Aug 2024)',
+                  color: 'from-red-500 to-orange-500',
+                  link: 'https://www.coursera.org/programs/kiron-open-higher-education-learning-program-55mz5/professional-certificates/google-project-management'
+                },
+                {
+                  icon: Award,
+                  title: 'Full Stack Web Developer Graduate',
+                  institution: 'FikrCamp - Comprehensive full-stack development program covering modern web technologies, frameworks, and best practices',
+                  status: 'Completed (2023-2024)',
+                  color: 'from-purple-500 to-pink-500',
+                  link: 'https://www.fikrcamp.com/'
+                },
+                {
+                  icon: Award,
+                  title: 'IBM Full Stack Developer Graduate',
+                  institution: 'IBM Professional Certificate - Advanced full-stack development with enterprise-level technologies and cloud computing',
+                  status: 'Completed (2025)',
+                  color: 'from-blue-600 to-indigo-600',
+                  link: 'https://www.coursera.org/programs/kiron-open-higher-education-learning-program-55mz5/professional-certificates/ibm-full-stack-cloud-developer'
                 },
                 {
                   icon: Award,
                   title: 'ALX Africa - Software Engineering Graduate',
                   institution: 'Comprehensive software engineering program',
                   status: 'Completed',
-                  color: 'from-purple-500 to-pink-500'
+                  color: 'from-orange-500 to-red-500',
+                  link: 'https://www.alxafrica.com/'
                 },
                 {
                   icon: Code,
                   title: 'Hargabits Digital School - Graduate',
                   institution: 'Digital skills and technology training',
                   status: 'Completed',
-                  color: 'from-green-500 to-emerald-500'
+                  color: 'from-green-500 to-emerald-500',
+                  link: 'https://shaqodoon.org/project-listing/bits-school-digital-design-hargabits-garobits'
                 }
               ].map((edu, index) => (
                 <motion.div
@@ -1051,6 +1116,8 @@ export default function App() {
                   transition={{ duration: 0.8, delay: index * 0.2 }}
                   whileHover={{ scale: 1.02 }}
                   viewport={{ once: true }}
+                  onClick={() => edu.link && window.open(edu.link, '_blank')}
+                  className={edu.link ? 'cursor-pointer' : ''}
                 >
                   <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden group">
                     <CardHeader>
@@ -1062,8 +1129,17 @@ export default function App() {
                           <edu.icon className="w-8 h-8 text-white" />
                         </motion.div>
                         <div className="flex-1">
-                          <CardTitle className="group-hover:text-primary transition-colors text-xl">
+                          <CardTitle className="group-hover:text-primary transition-colors text-xl flex items-center gap-2">
                             {edu.title}
+                            {edu.link && (
+                              <motion.div
+                                animate={{ x: [0, 5, 0] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </motion.div>
+                            )}
                           </CardTitle>
                           <CardDescription className="text-lg mt-1">
                             {edu.institution}
@@ -1488,9 +1564,6 @@ export default function App() {
                         <div className="text-center mt-2 text-xs text-muted-foreground">
                           Click card for details
                         </div>
-                        <div className="text-center mt-2 text-xs text-muted-foreground">
-                          Click card for details
-                        </div>
                       </motion.div>
                     </CardFooter>
                     
@@ -1689,8 +1762,9 @@ export default function App() {
           >
             <div className="flex justify-center space-x-6 mb-6">
               {[
-                { icon: Github, href: '#', label: 'GitHub' },
-                { icon: Linkedin, href: '#', label: 'LinkedIn' },
+                { icon: Github, href: 'https://github.com/mawlid1431', label: 'GitHub' },
+                { icon: Linkedin, href: 'https://www.linkedin.com/in/mowlid-mohamoud-haibe-8b7b6a189/', label: 'LinkedIn' },
+                { icon: Instagram, href: 'https://www.instagram.com/malitfx/', label: 'Instagram' },
                 { icon: Mail, href: 'mailto:malitmohamud@gmail.com', label: 'Email' }
               ].map((social) => (
                 <motion.a
