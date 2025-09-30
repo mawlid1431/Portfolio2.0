@@ -1024,7 +1024,7 @@ export default function App() {
                 >
                   <Badge className="bg-primary text-primary-foreground px-4 py-2 shadow-lg">
                     <Star className="w-4 h-4 mr-2" />
-                    Available for Projects
+                    Hit its me Mowlid Haibe
                   </Badge>
                 </motion.div>
               </div>
