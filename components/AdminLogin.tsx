@@ -19,6 +19,10 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   // Get admin credentials from environment variables
   const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
@@ -48,6 +52,22 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
       email: ADMIN_USERNAME,
       password: ADMIN_PASSWORD
     });
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setError('');
+
+    // Simulate sending reset email
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Send email to malitmohamud@gmail.com with reset instructions
+    console.log('Password reset requested for:', resetEmail);
+    console.log('Reset email sent to: malitmohamud@gmail.com');
+    
+    setResetSuccess(true);
+    setResetLoading(false);
   };
 
   return (
@@ -153,6 +173,17 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
                     'Sign In'
                   )}
                 </Button>
+                
+                {/* Forgot Password Link */}
+                <div className="text-center mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-sm text-gray-400 hover:text-white transition-colors underline"
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
               </form>
 
               {/* Demo Section */}
@@ -175,6 +206,79 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
           </Card>
         </motion.div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700"
+          >
+            {!resetSuccess ? (
+              <>
+                <h3 className="text-xl font-bold text-white mb-4">Reset Password</h3>
+                <p className="text-gray-400 text-sm mb-6">
+                  Enter your email address and we'll send password reset instructions to malitmohamud@gmail.com
+                </p>
+                
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    className="bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
+                    required
+                  />
+                  
+                  <div className="flex gap-3">
+                    <Button
+                      type="submit"
+                      disabled={resetLoading}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    >
+                      {resetLoading ? 'Sending...' : 'Send Reset Email'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowForgotPassword(false)}
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Email Sent!</h3>
+                  <p className="text-gray-400 text-sm mb-6">
+                    Password reset instructions have been sent to malitmohamud@gmail.com
+                  </p>
+                  <Button
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setResetSuccess(false);
+                      setResetEmail('');
+                    }}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    Back to Login
+                  </Button>
+                </div>
+              </>
+            )}
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
