@@ -13,6 +13,19 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    // Proxy email requests to the email server
+    proxy: {
+      '/api/send-email': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/health': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
   build: {
     outDir: 'dist',
