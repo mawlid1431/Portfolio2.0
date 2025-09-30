@@ -33,12 +33,6 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
     setLoading(true);
     setError('');
 
-    // Debug: Log environment variables
-    console.log('Expected Username:', ADMIN_USERNAME);
-    console.log('Expected Password:', ADMIN_PASSWORD);
-    console.log('Entered Email:', credentials.email);
-    console.log('Entered Password:', credentials.password);
-
     // Simulate authentication delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -47,7 +41,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
       onLogin(true);
       navigate('/admin/dashboard');
     } else {
-      setError(`Invalid email or password. Expected: ${ADMIN_USERNAME}`);
+      setError('Invalid email or password');
     }
 
     setLoading(false);
