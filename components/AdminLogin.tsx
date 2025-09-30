@@ -97,7 +97,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
                       type="email"
                       value={credentials.email}
                       onChange={(e) => setCredentials(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="admin@mowlid.dev"
+                      placeholder="admin@malit.dev"
                       className="pl-10 bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
                       required
                     />
@@ -167,8 +167,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
                 </Button>
                 <div className="text-center text-xs text-gray-500 mt-3">
                   <p>Demo credentials:</p>
-                  <p>Email: admin@mowlid.dev</p>
-                  <p>Password: admin123</p>
+                  <p>Email: admin@malit.dev</p>
+                  <p>Password: Adminadmin123</p>
                 </div>
               </div>
             </CardContent>
