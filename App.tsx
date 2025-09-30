@@ -138,6 +138,7 @@ const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: nu
   return <span>{count}+</span>;
 };
 
+// Main portfolio application component with optimized performance
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
