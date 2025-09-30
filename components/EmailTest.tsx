@@ -3,7 +3,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { sendContactEmail, sendOrderEmail, sendEmailFallback } from '../utils/emailService';
+// Removed broken email imports
 import { toast } from 'sonner';
 
 const EmailTest = () => {
@@ -51,49 +51,67 @@ const EmailTest = () => {
     total: 2530
   };
 
-  const handleTestEmail = async () => {
+  // Email test handlers
+  const testContactEmail = async () => {
     setLoading(true);
-    let success = false;
-
     try {
-      if (testType === 'contact') {
-        success = await sendContactEmail(contactData);
+      const response = await fetch('http://localhost:3001/api/send-contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(contactData),
+      });
+      
+      if (response.ok) {
+        toast.success('Contact email sent successfully! Check malitmohamud@gmail.com');
       } else {
-        success = await sendOrderEmail(orderData);
-      }
-
-      if (success) {
-        toast.success(`✅ Test ${testType} email sent successfully!`);
-      } else {
-        toast.error(`❌ Failed to send ${testType} email. Check console for details.`);
+        toast.error('Failed to send contact email');
       }
     } catch (error) {
-      console.error('Email test error:', error);
-      toast.error('❌ Email test failed. Check console for details.');
+      console.error('Error:', error);
+      toast.error('Error sending contact email');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const handleFallbackEmail = () => {
-    if (testType === 'contact') {
-      sendEmailFallback('contact', contactData);
-    } else {
-      sendEmailFallback('order', orderData);
+  const testOrderEmail = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:3001/api/send-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+      
+      if (response.ok) {
+        toast.success('Order email sent successfully! Check malitmohamud@gmail.com');
+      } else {
+        toast.error('Failed to send order email');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error sending order email');
+    } finally {
+      setLoading(false);
     }
-    toast.success('📧 Fallback email client opened!');
   };
 
   const checkEmailServerConfig = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/health');
-      if (response.ok) {
+      const response = await fetch('http://localhost:3001/api/send-contact', {
+        method: 'OPTIONS'
+      });
+      if (response.status === 200 || response.status === 404) {
         return '✅ Email Server Running';
       } else {
         return '❌ Email Server Not Responding';
       }
     } catch (error) {
-      return '❌ Email Server Not Running';
+      return '❌ Email Server Not Running (Start with: node email-server.js)';
     }
   };
 
@@ -183,23 +201,13 @@ const EmailTest = () => {
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Button
-                  onClick={handleTestEmail}
-                  disabled={loading}
-                  className="w-full"
-                >
-                  {loading ? 'Sending...' : `Send Test ${testType === 'contact' ? 'Contact' : 'Order'} Email`}
-                </Button>
-                
-                <Button
-                  onClick={handleFallbackEmail}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Test Fallback (Mail Client)
-                </Button>
-              </div>
+              <Button
+                onClick={testType === 'contact' ? testContactEmail : testOrderEmail}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? 'Sending...' : `Send Test ${testType === 'contact' ? 'Contact' : 'Order'} Email`}
+              </Button>
             </CardContent>
           </Card>
 
@@ -225,11 +233,12 @@ const EmailTest = () => {
           </CardHeader>
           <CardContent>
             <ol className="list-decimal list-inside space-y-2 text-sm">
-              <li>Follow the <code>EMAIL_SETUP_GUIDE.md</code> to configure EmailJS</li>
-              <li>Update your <code>.env.local</code> file with EmailJS credentials</li>
-              <li>Restart your development server</li>
+              <li>Make sure your Gmail App Password is configured in <code>email-server.js</code></li>
+              <li>Start the email server: <code>node email-server.js</code></li>
+              <li>The server should run on <code>http://localhost:3001</code></li>
               <li>Use this page to test email functionality</li>
               <li>Check <code>malitmohamud@gmail.com</code> for received emails</li>
+              <li>All emails will be sent from and to <code>malitmohamud@gmail.com</code></li>
             </ol>
           </CardContent>
         </Card>
