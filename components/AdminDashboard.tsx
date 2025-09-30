@@ -625,13 +625,508 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             )}
           </motion.div>
         ) : activeTab === 'orders' ? (
-          <div>Orders content here...</div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            key="orders"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-foreground">Orders Management</h2>
+              <div className="text-sm text-muted-foreground">
+                {orders.filter(o => o.status === 'pending').length} pending orders
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto"></div>
+                <p className="text-muted-foreground mt-2">Loading orders...</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {orders.map((order) => {
+                  const StatusIcon = getStatusIcon(order.status);
+                  return (
+                    <Card key={order.id} className="bg-card/50 border-border">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                        <div>
+                          <CardTitle className="text-foreground flex items-center gap-2">
+                            Order #{order.order_id}
+                            <Badge className={`${getStatusColor(order.status)} text-white flex items-center gap-1`}>
+                              <StatusIcon className="w-3 h-3" />
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </Badge>
+                          </CardTitle>
+                          <CardDescription className="text-muted-foreground">
+                            {order.customer_name} • {order.customer_email}
+                          </CardDescription>
+                          <CardDescription className="text-xs text-muted-foreground/70">
+                            {new Date(order.created_at).toLocaleDateString()} • Total: ${order.total.toFixed(2)}
+                          </CardDescription>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => openOrderDialog(order)}
+                            size="sm"
+                            variant="outline"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Select
+                            value={order.status}
+                            onValueChange={(value) => handleOrderStatusUpdate(order.id, value as Order['status'])}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="confirmed">Confirmed</SelectItem>
+                              <SelectItem value="processing">Processing</SelectItem>
+                              <SelectItem value="shipped">Shipped</SelectItem>
+                              <SelectItem value="delivered">Delivered</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            onClick={() => handleOrderDelete(order.id)}
+                            size="sm"
+                            variant="destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-sm text-muted-foreground">
+                          <p>{order.items.length} item(s) • Subtotal: ${order.subtotal.toFixed(2)} • Tax: ${order.tax.toFixed(2)}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {orders.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <ShoppingCart className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No orders yet</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
         ) : activeTab === 'services' ? (
-          <div>Services content here...</div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            key="services"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-foreground">Services Management</h2>
+              <Button onClick={() => openServiceDialog()} className="bg-purple-600 hover:bg-purple-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Service
+              </Button>
+            </div>
+
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto"></div>
+                <p className="text-muted-foreground mt-2">Loading services...</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {services.map((service) => (
+                  <Card key={service.id} className="bg-card/50 border-border">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                      <div>
+                        <CardTitle className="text-foreground">{service.name}</CardTitle>
+                        <CardDescription className="text-muted-foreground">
+                          {service.price}
+                        </CardDescription>
+                        <CardDescription className="text-xs text-muted-foreground/70">
+                          Created: {new Date(service.created_at).toLocaleDateString()}
+                        </CardDescription>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={() => openServiceDialog(service)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          onClick={() => handleServiceDelete(service.id)}
+                          size="sm"
+                          variant="destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-sm text-muted-foreground">
+                        <p className="line-clamp-2">{service.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {services.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Briefcase className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No services yet</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
         ) : (
-          <div>Projects content here...</div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            key="projects"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-foreground">Projects Management</h2>
+              <Button onClick={() => openProjectDialog()} className="bg-orange-600 hover:bg-orange-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Project
+              </Button>
+            </div>
+
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto"></div>
+                <p className="text-muted-foreground mt-2">Loading projects...</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {projects.map((project) => (
+                  <Card key={project.id} className="bg-card/50 border-border">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                      <div>
+                        <CardTitle className="text-foreground flex items-center gap-2">
+                          {project.name}
+                          {project.is_live && (
+                            <Badge className="bg-green-600 text-white">
+                              Live
+                            </Badge>
+                          )}
+                        </CardTitle>
+                        <CardDescription className="text-muted-foreground">
+                          {project.technology}
+                        </CardDescription>
+                        <CardDescription className="text-xs text-muted-foreground/70">
+                          Created: {new Date(project.created_at).toLocaleDateString()}
+                        </CardDescription>
+                      </div>
+                      <div className="flex space-x-2">
+                        {project.link && (
+                          <Button
+                            onClick={() => window.open(project.link, '_blank')}
+                            size="sm"
+                            variant="outline"
+                          >
+                            <Globe className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button
+                          onClick={() => openProjectDialog(project)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          onClick={() => handleProjectDelete(project.id)}
+                          size="sm"
+                          variant="destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-sm text-muted-foreground">
+                        <p className="line-clamp-2">{project.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {projects.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Globe className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No projects yet</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
         )}
       </div>
+
+      {/* Service Dialog */}
+      <Dialog open={showServiceDialog} onOpenChange={setShowServiceDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingService ? 'Edit Service' : 'Add New Service'}</DialogTitle>
+            <DialogDescription>
+              {editingService ? 'Update service information' : 'Create a new service offering'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleServiceSubmit} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Service Name</label>
+              <Input
+                value={serviceForm.name}
+                onChange={(e) => setServiceForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter service name"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Price</label>
+              <Input
+                value={serviceForm.price}
+                onChange={(e) => setServiceForm(prev => ({ ...prev, price: e.target.value }))}
+                placeholder="e.g., $500-$2000"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Textarea
+                value={serviceForm.description}
+                onChange={(e) => setServiceForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Describe the service"
+                rows={3}
+                required
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={resetServiceForm}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                {editingService ? 'Update' : 'Create'} Service
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Project Dialog */}
+      <Dialog open={showProjectDialog} onOpenChange={setShowProjectDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingProject ? 'Edit Project' : 'Add New Project'}</DialogTitle>
+            <DialogDescription>
+              {editingProject ? 'Update project information' : 'Create a new project entry'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleProjectSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Project Name</label>
+                <Input
+                  value={projectForm.name}
+                  onChange={(e) => setProjectForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter project name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Technology Stack</label>
+                <Input
+                  value={projectForm.technology}
+                  onChange={(e) => setProjectForm(prev => ({ ...prev, technology: e.target.value }))}
+                  placeholder="React, TypeScript, etc."
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Textarea
+                value={projectForm.description}
+                onChange={(e) => setProjectForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Describe the project"
+                rows={3}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Project Link</label>
+                <Input
+                  value={projectForm.link}
+                  onChange={(e) => setProjectForm(prev => ({ ...prev, link: e.target.value }))}
+                  placeholder="https://project-url.com"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Image URL</label>
+                <Input
+                  value={projectForm.image}
+                  onChange={(e) => setProjectForm(prev => ({ ...prev, image: e.target.value }))}
+                  placeholder="https://image-url.com/image.jpg"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="is_live"
+                checked={projectForm.is_live}
+                onChange={(e) => setProjectForm(prev => ({ ...prev, is_live: e.target.checked }))}
+                className="rounded"
+              />
+              <label htmlFor="is_live" className="text-sm font-medium">Project is live</label>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={resetProjectForm}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                {editingProject ? 'Update' : 'Create'} Project
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Order Details Dialog */}
+      <Dialog open={showOrderDialog} onOpenChange={setShowOrderDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          {selectedOrder && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  Order #{selectedOrder.order_id}
+                  <Badge className={`${getStatusColor(selectedOrder.status)} text-white`}>
+                    {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                  </Badge>
+                </DialogTitle>
+                <DialogDescription>
+                  Placed on {new Date(selectedOrder.created_at).toLocaleDateString()} at {new Date(selectedOrder.created_at).toLocaleTimeString()}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                {/* Customer Information */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-foreground mb-3">Customer Information</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-foreground">{selectedOrder.customer_name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
+                        <a href={`mailto:${selectedOrder.customer_email}`} className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
+                          {selectedOrder.customer_email}
+                        </a>
+                      </div>
+                      {selectedOrder.customer_phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-muted-foreground" />
+                          <a href={`tel:${selectedOrder.customer_phone}`} className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
+                            {selectedOrder.customer_phone}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Shipping Address */}
+                  {selectedOrder.address_street && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-foreground mb-3">Shipping Address</h3>
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-4 h-4 text-muted-foreground mt-1" />
+                        <div className="text-foreground">
+                          <p>{selectedOrder.address_street}</p>
+                          <p>{selectedOrder.address_city} {selectedOrder.address_postal}</p>
+                          <p>{selectedOrder.address_country}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Order Items */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">Order Items</h3>
+                  <div className="space-y-3">
+                    {selectedOrder.items.map((item, index) => (
+                      <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                        <div>
+                          <p className="font-medium text-foreground">{item.title}</p>
+                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                          <p className="text-xs text-muted-foreground">Category: {item.category}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-foreground">Qty: {item.quantity}</p>
+                          <p className="text-sm text-muted-foreground">${item.price.toFixed(2)} each</p>
+                          <p className="font-medium text-foreground">${(item.price * item.quantity).toFixed(2)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Order Summary */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">Order Summary</h3>
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span>${selectedOrder.subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tax:</span>
+                      <span>${selectedOrder.tax.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold text-lg border-t border-border pt-2">
+                      <span>Total:</span>
+                      <span>${selectedOrder.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-between items-center pt-4 border-t border-border">
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => window.open(`mailto:${selectedOrder.customer_email}?subject=Order Update - ${selectedOrder.order_id}`, '_blank')}
+                    variant="outline"
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Email Customer
+                  </Button>
+                  {selectedOrder.customer_phone && (
+                    <Button
+                      onClick={() => window.open(`tel:${selectedOrder.customer_phone}`, '_blank')}
+                      variant="outline"
+                    >
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call Customer
+                    </Button>
+                  )}
+                </div>
+                <Button
+                  onClick={() => setShowOrderDialog(false)}
+                  variant="secondary"
+                >
+                  Close
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Contact Details Dialog */}
       <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
