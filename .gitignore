@@ -108,17 +108,16 @@ vite.config.ts.timestamp-*
 email-server.pid
 
 # Sensitive configuration files
-config/production.json
-config/local.json
-supabase-permissions.sql
 *.sql
+*.backup
+*.bak
 
 # Database credentials and sensitive data
 .env.secrets
 auth-config.json
 
 # Email server configuration files
-email-server.js.backup
+email-server.js
 *.key
 *.pem
 *.p12
@@ -127,28 +126,15 @@ email-server.js.backup
 smtp-config.json
 email-credentials.json
 
-# Backup files containing sensitive data
-*.backup
-*.bak
-
-# Documentation with sensitive info
-EMAIL_SETUP_GUIDE.md
-
 # Any files containing passwords or API keys
 *password*
 *secret*
 *credential*
 *token*
 
-# Supabase specific sensitive files
-supabase-setup.sql
-database-setup.sql
-supabase-permissions.sql
-
 # Project-specific sensitive files
 database-manager.ts
 populate-database.ts
-email-server.js
 email-server-package.json
 
 # Documentation files that might contain sensitive info
@@ -156,13 +142,18 @@ EMAIL_SETUP_GUIDE.md
 SECURITY_SETUP.md
 DATABASE_SETUP_COMPLETE.md
 ADMIN_SYSTEM_COMPLETE.md
-
-# Image files (if they contain sensitive info)
-*.JPG
-*.jpeg
-*.png
-*.jpg
-*.gif
+ORDERS_SYSTEM_SETUP.md
+EMAIL_INTEGRATION_GUIDE.md
+EMAILJS_SETUP.md
+SIMPLE_EMAIL_SETUP.md
+WEB3FORMS_SETUP.md
+DEPLOYMENT.md
+INSTALLATION.md
 
 # Server configuration files
 server.js
+test-*.js
+setup-*.js
+start-system.bat
+vite-email.config.ts
+package-temp.json

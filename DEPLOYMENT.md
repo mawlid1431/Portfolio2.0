@@ -13,6 +13,7 @@ Before deploying your Portfolio 2.0 to production, make sure you complete these 
 ## ✅ Environment Setup
 
 ### Supabase Configuration
+
 - [ ] Create production Supabase project (if different from dev)
 - [ ] Update `VITE_SUPABASE_URL` in production environment
 - [ ] Update `VITE_SUPABASE_ANON_KEY` in production environment
@@ -21,13 +22,15 @@ Before deploying your Portfolio 2.0 to production, make sure you complete these 
 - [ ] Test database connectivity
 
 ### Email Configuration
+
 - [ ] Set up Gmail App Password for production email
 - [ ] Update `GMAIL_USER` in production environment
-- [ ] Update `GMAIL_APP_PASSWORD` in production environment  
+- [ ] Update `GMAIL_APP_PASSWORD` in production environment
 - [ ] Update `VITE_EMAIL_TO` with your production email
 - [ ] Deploy email server separately or use serverless functions
 
 ### Admin Configuration
+
 - [ ] Change `VITE_ADMIN_USERNAME` to secure username
 - [ ] Change `VITE_ADMIN_PASSWORD` to strong password
 - [ ] Test admin login functionality
@@ -44,6 +47,7 @@ Before deploying your Portfolio 2.0 to production, make sure you complete these 
 ## ✅ Hosting Platform Setup
 
 ### Environment Variables (set these in your hosting platform)
+
 ```
 VITE_SUPABASE_URL=your_production_supabase_url
 VITE_SUPABASE_ANON_KEY=your_production_anon_key
@@ -56,6 +60,7 @@ EMAIL_SERVER_PORT=3001
 ```
 
 ### Build Settings
+
 - [ ] Set build command: `npm run build`
 - [ ] Set publish directory: `dist`
 - [ ] Set Node.js version: 18+
@@ -76,11 +81,13 @@ EMAIL_SERVER_PORT=3001
 Choose one option:
 
 ### Option 1: Separate Server
+
 - [ ] Deploy `email-server.js` to a server (Railway, Heroku, etc.)
 - [ ] Update email service URL in `emailService.ts`
 - [ ] Set up environment variables on email server
 
 ### Option 2: Serverless Function
+
 - [ ] Convert email server to serverless function (Vercel, Netlify)
 - [ ] Update API endpoints accordingly
 - [ ] Test serverless email functionality
@@ -95,6 +102,7 @@ Choose one option:
 ## 🎉 Go Live!
 
 Once all items are checked:
+
 1. Push to GitHub: `git push origin master`
 2. Deploy to your hosting platform
 3. Test everything one final time
@@ -103,6 +111,7 @@ Once all items are checked:
 ## 📞 Support
 
 If you encounter issues:
+
 1. Check browser console for errors
 2. Verify environment variables are set correctly
 3. Test database connectivity
@@ -110,4 +119,5 @@ If you encounter issues:
 5. Review hosting platform logs
 
 ---
+
 **Remember**: Keep your `.env.local` file safe and never commit it to Git!
