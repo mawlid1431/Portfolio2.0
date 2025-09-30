@@ -21,10 +21,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "server": "node server.js",
-    "email-server": "node email-server.js",
-    "dev:all": "concurrently \"npm run server\" \"npm run dev\"",
-    "start": "concurrently \"npm run email-server\" \"npm run dev\"",
+    "start": "npm run dev",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
