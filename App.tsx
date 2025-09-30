@@ -139,6 +139,7 @@ const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: nu
 };
 
 // Main portfolio application component with optimized performance
+// Production-ready with comprehensive features and security
 export default function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
