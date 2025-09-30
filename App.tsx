@@ -45,8 +45,8 @@ import {
 } from 'lucide-react';
 
 // Import your actual profile images (swapped)
-const profileImage1 = "/images/placeholder.svg"; // Hero section image
-const profileImage2 = "/images/placeholder.svg"; // Profile image
+const profileImage1 = "/images/profile-image.jpg"; // Hero section image
+const profileImage2 = "/images/hero-image.jpg"; // Profile image
 
 // Import your actual project images
 const dehProjectImage = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMzMzOGZmIi8+Cjx0ZXh0IHg9IjE1MCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ERUggUHJvamVjdDwvdGV4dD4KPC9zdmc+Cg==";
