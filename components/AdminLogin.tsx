@@ -25,8 +25,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   const [resetSuccess, setResetSuccess] = useState(false);
 
   // Get admin credentials from environment variables
-  const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || 'admin';
-  const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'password123';
+  const ADMIN_USERNAME = (import.meta as any).env.VITE_ADMIN_USERNAME || 'admin';
+  const ADMIN_PASSWORD = (import.meta as any).env.VITE_ADMIN_PASSWORD || 'password123';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
