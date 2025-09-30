@@ -6,6 +6,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
 import {
   getServices,
@@ -15,7 +16,15 @@ import {
   updateService,
   updateProject,
   deleteService,
-  deleteProject
+  deleteProject,
+  getOrders,
+  updateOrderStatus,
+  deleteOrder,
+  getContacts,
+  updateContactStatus,
+  deleteContact,
+  Order,
+  Contact
 } from '../utils/supabase/database';
 import { Service, Project } from '../utils/supabase/client';
 import {
@@ -27,7 +36,19 @@ import {
   Briefcase,
   Globe,
   RefreshCw,
-  ArrowLeft
+  ArrowLeft,
+  ShoppingCart,
+  Eye,
+  Package,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Truck,
+  Mail,
+  Phone,
+  MapPin,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -37,14 +58,26 @@ interface AdminDashboardProps {
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'services' | 'projects'>('services');
+  const [activeTab, setActiveTab] = useState<'contacts' | 'orders' | 'services' | 'projects'>('contacts');
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark');
+    }
+    return false;
+  });
   const [services, setServices] = useState<Service[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [showServiceDialog, setShowServiceDialog] = useState(false);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [showContactDialog, setShowContactDialog] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   // Form states
   const [serviceForm, setServiceForm] = useState({
@@ -67,12 +100,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [servicesData, projectsData] = await Promise.all([
+      const [servicesData, projectsData, ordersData, contactsData] = await Promise.all([
         getServices(),
-        getProjects()
+        getProjects(),
+        getOrders(),
+        getContacts()
       ]);
       setServices(servicesData);
       setProjects(projectsData);
+      setOrders(ordersData);
+      setContacts(contactsData);
     } catch (error) {
       toast.error('Failed to load data');
       console.error('Error loading data:', error);
@@ -84,6 +121,54 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  // Contact handlers
+  const handleContactStatusUpdate = async (contactId: number, newStatus: Contact['status']) => {
+    try {
+      await updateContactStatus(contactId, newStatus);
+      toast.success('Contact status updated successfully');
+      await loadData();
+    } catch (error) {
+      toast.error('Failed to update contact status');
+      console.error('Error updating contact status:', error);
+    }
+  };
+
+  const handleContactDelete = async (contactId: number) => {
+    if (confirm('Are you sure you want to delete this contact?')) {
+      try {
+        await deleteContact(contactId);
+        toast.success('Contact deleted successfully');
+        await loadData();
+      } catch (error) {
+        toast.error('Failed to delete contact');
+        console.error('Error deleting contact:', error);
+      }
+    }
+  };
+
+  const openContactDialog = (contact: Contact) => {
+    setSelectedContact(contact);
+    setShowContactDialog(true);
+  };
+
+  const getContactStatusColor = (status: Contact['status']) => {
+    switch (status) {
+      case 'new': return 'bg-blue-600';
+      case 'read': return 'bg-yellow-600';
+      case 'replied': return 'bg-green-600';
+      case 'archived': return 'bg-gray-600';
+      default: return 'bg-gray-600';
+    }
+  };
 
   // Service handlers
   const handleServiceSubmit = async (e: React.FormEvent) => {
@@ -215,6 +300,60 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setShowProjectDialog(true);
   };
 
+  // Order handlers
+  const handleOrderStatusUpdate = async (orderId: number, newStatus: Order['status']) => {
+    try {
+      await updateOrderStatus(orderId, newStatus);
+      toast.success('Order status updated successfully');
+      await loadData();
+    } catch (error) {
+      toast.error('Failed to update order status');
+      console.error('Error updating order status:', error);
+    }
+  };
+
+  const handleOrderDelete = async (orderId: number) => {
+    if (confirm('Are you sure you want to delete this order?')) {
+      try {
+        await deleteOrder(orderId);
+        toast.success('Order deleted successfully');
+        await loadData();
+      } catch (error) {
+        toast.error('Failed to delete order');
+        console.error('Error deleting order:', error);
+      }
+    }
+  };
+
+  const openOrderDialog = (order: Order) => {
+    setSelectedOrder(order);
+    setShowOrderDialog(true);
+  };
+
+  const getStatusColor = (status: Order['status']) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-600';
+      case 'confirmed': return 'bg-blue-600';
+      case 'processing': return 'bg-purple-600';
+      case 'shipped': return 'bg-orange-600';
+      case 'delivered': return 'bg-green-600';
+      case 'cancelled': return 'bg-red-600';
+      default: return 'bg-gray-600';
+    }
+  };
+
+  const getStatusIcon = (status: Order['status']) => {
+    switch (status) {
+      case 'pending': return Clock;
+      case 'confirmed': return CheckCircle;
+      case 'processing': return Package;
+      case 'shipped': return Truck;
+      case 'delivered': return CheckCircle;
+      case 'cancelled': return XCircle;
+      default: return Clock;
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('adminAuthenticated');
     onLogout();
@@ -222,37 +361,49 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
       {/* Header */}
-      <div className="bg-gray-800/50 border-b border-gray-700 backdrop-blur-xl">
+      <div className="bg-card/95 backdrop-blur-xl border-b border-border shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate('/')}
-                className="flex items-center text-gray-400 hover:text-white transition-colors"
+                className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Portfolio
               </button>
-              <div className="w-px h-6 bg-gray-600"></div>
-              <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+              <div className="w-px h-6 bg-border"></div>
+              <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button
                 onClick={loadData}
                 variant="outline"
                 size="sm"
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Refresh
               </Button>
               <Button
-                onClick={handleLogout}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                onClick={() => setDarkMode(!darkMode)}
+                className="relative overflow-hidden"
+              >
+                <motion.div
+                  initial={false}
+                  animate={{ rotate: darkMode ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </motion.div>
+              </Button>
+              <Button
+                onClick={handleLogout}
+                variant="destructive"
+                size="sm"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -264,20 +415,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Card className="bg-gradient-to-r from-blue-600/20 to-blue-800/20 border-blue-600/30">
+            <Card className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 border-blue-500/20">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-blue-400">Total Services</CardTitle>
-                <Briefcase className="h-4 w-4 text-blue-400" />
+                <CardTitle className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Contacts</CardTitle>
+                <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{services.length}</div>
-                <p className="text-xs text-gray-400">Active service offerings</p>
+                <div className="text-2xl font-bold text-foreground">{contacts.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {contacts.filter(c => c.status === 'new').length} new messages
+                </p>
               </CardContent>
             </Card>
           </motion.div>
@@ -287,14 +440,50 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card className="bg-gradient-to-r from-purple-600/20 to-purple-800/20 border-purple-600/30">
+            <Card className="bg-gradient-to-r from-green-500/10 to-green-600/10 border-green-500/20">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-purple-400">Total Projects</CardTitle>
-                <Globe className="h-4 w-4 text-purple-400" />
+                <CardTitle className="text-sm font-medium text-green-600 dark:text-green-400">Total Orders</CardTitle>
+                <ShoppingCart className="h-4 w-4 text-green-600 dark:text-green-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{projects.length}</div>
-                <p className="text-xs text-gray-400">
+                <div className="text-2xl font-bold text-foreground">{orders.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  {orders.filter(o => o.status === 'pending').length} pending orders
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="bg-gradient-to-r from-purple-500/10 to-purple-600/10 border-purple-500/20">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-purple-600 dark:text-purple-400">Total Services</CardTitle>
+                <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">{services.length}</div>
+                <p className="text-xs text-muted-foreground">Active service offerings</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card className="bg-gradient-to-r from-orange-500/10 to-orange-600/10 border-orange-500/20">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-orange-600 dark:text-orange-400">Total Projects</CardTitle>
+                <Globe className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">{projects.length}</div>
+                <p className="text-xs text-muted-foreground">
                   {projects.filter(p => p.is_live).length} live projects
                 </p>
               </CardContent>
@@ -305,11 +494,33 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         {/* Tabs */}
         <div className="flex space-x-2 mb-6">
           <Button
+            onClick={() => setActiveTab('contacts')}
+            variant={activeTab === 'contacts' ? 'default' : 'outline'}
+            className={activeTab === 'contacts' 
+              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+              : ''
+            }
+          >
+            <Mail className="w-4 h-4 mr-2" />
+            Contacts
+          </Button>
+          <Button
+            onClick={() => setActiveTab('orders')}
+            variant={activeTab === 'orders' ? 'default' : 'outline'}
+            className={activeTab === 'orders' 
+              ? 'bg-green-600 hover:bg-green-700 text-white' 
+              : ''
+            }
+          >
+            <ShoppingCart className="w-4 h-4 mr-2" />
+            Orders
+          </Button>
+          <Button
             onClick={() => setActiveTab('services')}
             variant={activeTab === 'services' ? 'default' : 'outline'}
             className={activeTab === 'services' 
-              ? 'bg-blue-600 hover:bg-blue-700' 
-              : 'border-gray-600 text-gray-300 hover:bg-gray-700'
+              ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+              : ''
             }
           >
             <Briefcase className="w-4 h-4 mr-2" />
@@ -319,8 +530,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             onClick={() => setActiveTab('projects')}
             variant={activeTab === 'projects' ? 'default' : 'outline'}
             className={activeTab === 'projects' 
-              ? 'bg-purple-600 hover:bg-purple-700' 
-              : 'border-gray-600 text-gray-300 hover:bg-gray-700'
+              ? 'bg-orange-600 hover:bg-orange-700 text-white' 
+              : ''
             }
           >
             <Globe className="w-4 h-4 mr-2" />
@@ -329,313 +540,180 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         </div>
 
         {/* Content */}
-        {activeTab === 'services' ? (
+        {activeTab === 'contacts' ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            key="services"
+            key="contacts"
           >
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">Services Management</h2>
-              <Button
-                onClick={() => openServiceDialog()}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Service
-              </Button>
+              <h2 className="text-xl font-semibold text-foreground">Contact Messages</h2>
+              <div className="text-sm text-muted-foreground">
+                {contacts.filter(c => c.status === 'new').length} new messages
+              </div>
             </div>
 
             {loading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent mx-auto"></div>
-                <p className="text-gray-400 mt-2">Loading services...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto"></div>
+                <p className="text-muted-foreground mt-2">Loading contacts...</p>
               </div>
             ) : (
               <div className="grid gap-4">
-                {services.map((service) => (
-                  <Card key={service.id} className="bg-gray-800/50 border-gray-700">
+                {contacts.map((contact) => (
+                  <Card key={contact.id} className="bg-card/50 border-border">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0">
                       <div>
-                        <CardTitle className="text-white">{service.name}</CardTitle>
-                        <CardDescription className="text-green-400 font-medium">
-                          {service.price}
-                        </CardDescription>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          onClick={() => openServiceDialog(service)}
-                          size="sm"
-                          variant="outline"
-                          className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          onClick={() => handleServiceDelete(service.id)}
-                          size="sm"
-                          variant="outline"
-                          className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-300 text-sm">{service.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            key="projects"
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">Projects Management</h2>
-              <Button
-                onClick={() => openProjectDialog()}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Project
-              </Button>
-            </div>
-
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent mx-auto"></div>
-                <p className="text-gray-400 mt-2">Loading projects...</p>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {projects.map((project) => (
-                  <Card key={project.id} className="bg-gray-800/50 border-gray-700">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                      <div>
-                        <CardTitle className="text-white flex items-center gap-2">
-                          {project.name}
-                          <Badge 
-                            className={project.is_live 
-                              ? 'bg-green-600 text-white' 
-                              : 'bg-gray-600 text-gray-300'
-                            }
-                          >
-                            {project.is_live ? 'Live' : 'Development'}
+                        <CardTitle className="text-foreground flex items-center gap-2">
+                          {contact.name}
+                          <Badge className={`${getContactStatusColor(contact.status)} text-white`}>
+                            {contact.status.charAt(0).toUpperCase() + contact.status.slice(1)}
                           </Badge>
                         </CardTitle>
-                        <CardDescription className="text-blue-400">
-                          {project.technology}
+                        <CardDescription className="text-muted-foreground">
+                          {contact.email} • {contact.phone || 'No phone'}
+                        </CardDescription>
+                        <CardDescription className="text-xs text-muted-foreground/70">
+                          {new Date(contact.created_at).toLocaleDateString()} at {new Date(contact.created_at).toLocaleTimeString()}
                         </CardDescription>
                       </div>
                       <div className="flex space-x-2">
                         <Button
-                          onClick={() => openProjectDialog(project)}
+                          onClick={() => openContactDialog(contact)}
                           size="sm"
                           variant="outline"
-                          className="border-gray-600 text-gray-300 hover:bg-gray-700"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Eye className="w-4 h-4" />
                         </Button>
+                        <Select
+                          value={contact.status}
+                          onValueChange={(value) => handleContactStatusUpdate(contact.id, value as Contact['status'])}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="read">Read</SelectItem>
+                            <SelectItem value="replied">Replied</SelectItem>
+                            <SelectItem value="archived">Archived</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <Button
-                          onClick={() => handleProjectDelete(project.id)}
+                          onClick={() => handleContactDelete(contact.id)}
                           size="sm"
-                          variant="outline"
-                          className="border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                          variant="destructive"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-gray-300 text-sm mb-2">{project.description}</p>
-                      {project.link && (
-                        <a
-                          href={project.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 text-sm"
-                        >
-                          View Project →
-                        </a>
-                      )}
+                      <div className="text-sm text-muted-foreground">
+                        <p className="line-clamp-2">{contact.message}</p>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
+                {contacts.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Mail className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No contact messages yet</p>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>
+        ) : activeTab === 'orders' ? (
+          <div>Orders content here...</div>
+        ) : activeTab === 'services' ? (
+          <div>Services content here...</div>
+        ) : (
+          <div>Projects content here...</div>
         )}
       </div>
 
-      {/* Service Dialog */}
-      <Dialog open={showServiceDialog} onOpenChange={setShowServiceDialog}>
-        <DialogContent className="bg-gray-800 border-gray-700 text-white">
-          <DialogHeader>
-            <DialogTitle>
-              {editingService ? 'Edit Service' : 'Add New Service'}
-            </DialogTitle>
-            <DialogDescription className="text-gray-400">
-              {editingService ? 'Update service information' : 'Create a new service offering'}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleServiceSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-gray-300">Service Name</label>
-              <Input
-                value={serviceForm.name}
-                onChange={(e) => setServiceForm(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Web Development"
-                className="bg-gray-700 border-gray-600 text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Price Range</label>
-              <Input
-                value={serviceForm.price}
-                onChange={(e) => setServiceForm(prev => ({ ...prev, price: e.target.value }))}
-                placeholder="e.g., $500-$2000"
-                className="bg-gray-700 border-gray-600 text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Description</label>
-              <Textarea
-                value={serviceForm.description}
-                onChange={(e) => setServiceForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe your service..."
-                className="bg-gray-700 border-gray-600 text-white min-h-[100px]"
-                required
-              />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={resetServiceForm}
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {editingService ? 'Update' : 'Add'} Service
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Contact Details Dialog */}
+      <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selectedContact && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  Contact Message from {selectedContact.name}
+                  <Badge className={`${getContactStatusColor(selectedContact.status)} text-white`}>
+                    {selectedContact.status.charAt(0).toUpperCase() + selectedContact.status.slice(1)}
+                  </Badge>
+                </DialogTitle>
+                <DialogDescription>
+                  Received on {new Date(selectedContact.created_at).toLocaleDateString()} at {new Date(selectedContact.created_at).toLocaleTimeString()}
+                </DialogDescription>
+              </DialogHeader>
 
-      {/* Project Dialog */}
-      <Dialog open={showProjectDialog} onOpenChange={setShowProjectDialog}>
-        <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingProject ? 'Edit Project' : 'Add New Project'}
-            </DialogTitle>
-            <DialogDescription className="text-gray-400">
-              {editingProject ? 'Update project information' : 'Create a new project showcase'}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleProjectSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-300">Project Name</label>
-                <Input
-                  value={projectForm.name}
-                  onChange={(e) => setProjectForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., Portfolio Website"
-                  className="bg-gray-700 border-gray-600 text-white"
-                  required
-                />
+              <div className="space-y-6">
+                {/* Contact Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">Contact Information</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-foreground">{selectedContact.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                      <a href={`mailto:${selectedContact.email}`} className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
+                        {selectedContact.email}
+                      </a>
+                    </div>
+                    {selectedContact.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-muted-foreground" />
+                        <a href={`tel:${selectedContact.phone}`} className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
+                          {selectedContact.phone}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Message */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">Message</h3>
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <p className="text-foreground whitespace-pre-wrap">{selectedContact.message}</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_live"
-                  checked={projectForm.is_live}
-                  onChange={(e) => setProjectForm(prev => ({ ...prev, is_live: e.target.checked }))}
-                  className="rounded"
-                />
-                <label htmlFor="is_live" className="text-sm font-medium text-gray-300">
-                  Project is Live
-                </label>
+
+              {/* Actions */}
+              <div className="flex justify-between items-center pt-4 border-t border-border">
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => window.open(`mailto:${selectedContact.email}?subject=Re: Your Contact Form Message`, '_blank')}
+                    variant="outline"
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Reply via Email
+                  </Button>
+                  {selectedContact.phone && (
+                    <Button
+                      onClick={() => window.open(`tel:${selectedContact.phone}`, '_blank')}
+                      variant="outline"
+                    >
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call
+                    </Button>
+                  )}
+                </div>
+                <Button
+                  onClick={() => setShowContactDialog(false)}
+                  variant="secondary"
+                >
+                  Close
+                </Button>
               </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Description</label>
-              <Textarea
-                value={projectForm.description}
-                onChange={(e) => setProjectForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe your project..."
-                className="bg-gray-700 border-gray-600 text-white min-h-[80px]"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-300">Live URL</label>
-                <Input
-                  value={projectForm.link}
-                  onChange={(e) => setProjectForm(prev => ({ ...prev, link: e.target.value }))}
-                  placeholder="https://yourproject.com"
-                  className="bg-gray-700 border-gray-600 text-white"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-300">GitHub URL</label>
-                <Input
-                  value={projectForm.official_link}
-                  onChange={(e) => setProjectForm(prev => ({ ...prev, official_link: e.target.value }))}
-                  placeholder="https://github.com/..."
-                  className="bg-gray-700 border-gray-600 text-white"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Image URL</label>
-              <Input
-                value={projectForm.image}
-                onChange={(e) => setProjectForm(prev => ({ ...prev, image: e.target.value }))}
-                placeholder="https://example.com/image.jpg"
-                className="bg-gray-700 border-gray-600 text-white"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-300">Technologies</label>
-              <Input
-                value={projectForm.technology}
-                onChange={(e) => setProjectForm(prev => ({ ...prev, technology: e.target.value }))}
-                placeholder="React, TypeScript, Tailwind CSS"
-                className="bg-gray-700 border-gray-600 text-white"
-                required
-              />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={resetProjectForm}
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {editingProject ? 'Update' : 'Add'} Project
-              </Button>
-            </div>
-          </form>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
