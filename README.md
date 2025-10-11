@@ -24,17 +24,11 @@ A modern, professional portfolio website built with React, TypeScript, and Supab
 ## 📸 Screenshots
 
 ### Desktop View
-![Desktop Homepage](./mockups/desktop-home.png)
-![Desktop Admin Dashboard](./mockups/desktop-admin.png)
+![Desktop Homepage](./Mockups/Screenshot%202025-10-11%20131723.png)
+![Desktop Admin Dashboard](./Mockups/Screenshot%202025-10-11%20131736.png)
 
 ### Mobile View
-![Mobile Homepage](./mockups/mobile-home.png)
-![Mobile Navigation](./mockups/mobile-nav.png)
-
-### Features Preview
-![Services Section](./mockups/services.png)
-![Projects Gallery](./mockups/projects.png)
-![Contact Form](./mockups/contact.png)
+![Mobile Homepage](./Mockups/Screenshot%202025-10-11%20131754.png)
 
 ## 🚀 Quick Start
 
