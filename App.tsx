@@ -1308,7 +1308,7 @@ export default function App() {
                 viewport={{ once: true }}
                 className="text-4xl md:text-5xl mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
               >
-                Featured Projects
+                Projects
               </motion.h2>
               <motion.p
                 initial={{ opacity: 0, y: 30 }}
@@ -1317,7 +1317,7 @@ export default function App() {
                 viewport={{ once: true }}
                 className="text-xl text-muted-foreground max-w-3xl mx-auto"
               >
-                A showcase of digital solutions that have made real impact in communities worldwide
+                Successful projects that I delivered for my clients
               </motion.p>
             </div>
             
@@ -1466,7 +1466,7 @@ export default function App() {
               </motion.p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center max-w-4xl mx-auto">
               {servicesLoading ? (
                 // Loading skeleton for services
                 [...Array(4)].map((_, index) => (
