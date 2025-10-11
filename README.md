@@ -59,61 +59,7 @@ cp .env.example .env.local
 
 ### 4. Database Setup
 
-Create a Supabase project and run the following SQL to set up tables:
-
-```sql
--- Services table
-CREATE TABLE services (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT NOT NULL,
-  price VARCHAR(100) NOT NULL,
-  technology VARCHAR(500),
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Projects table
-CREATE TABLE projects (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT NOT NULL,
-  image VARCHAR(500),
-  technology VARCHAR(500),
-  link VARCHAR(500),
-  is_live BOOLEAN DEFAULT false,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Orders table
-CREATE TABLE orders (
-  id SERIAL PRIMARY KEY,
-  order_id VARCHAR(50) UNIQUE NOT NULL,
-  customer_name VARCHAR(255) NOT NULL,
-  customer_email VARCHAR(255) NOT NULL,
-  customer_phone VARCHAR(50),
-  address_street VARCHAR(500),
-  address_city VARCHAR(100),
-  address_postal VARCHAR(20),
-  address_country VARCHAR(100),
-  items JSONB NOT NULL,
-  subtotal DECIMAL(10,2) NOT NULL,
-  tax DECIMAL(10,2) NOT NULL,
-  total DECIMAL(10,2) NOT NULL,
-  status VARCHAR(50) DEFAULT 'pending',
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Contacts table
-CREATE TABLE contacts (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) NOT NULL,
-  phone VARCHAR(50),
-  message TEXT NOT NULL,
-  status VARCHAR(50) DEFAULT 'new',
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
+Create a Supabase project and set up the required tables.
 
 ### 5. Run the application
 
@@ -125,7 +71,6 @@ npm run dev
 
 - **Portfolio**: Visit `http://localhost:5173`
 - **Admin Dashboard**: Visit `http://localhost:5173/admin`
-  - Default credentials: `admin@malit.dev` / `Adminadmin123`
 
 ## 🔧 Admin Features
 
