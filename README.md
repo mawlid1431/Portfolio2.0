@@ -21,6 +21,21 @@ A modern, professional portfolio website built with React, TypeScript, and Supab
 - **Icons**: Lucide React
 - **Email**: SMTP integration for notifications
 
+## 📸 Screenshots
+
+### Desktop View
+![Desktop Homepage](./mockups/desktop-home.png)
+![Desktop Admin Dashboard](./mockups/desktop-admin.png)
+
+### Mobile View
+![Mobile Homepage](./mockups/mobile-home.png)
+![Mobile Navigation](./mockups/mobile-nav.png)
+
+### Features Preview
+![Services Section](./mockups/services.png)
+![Projects Gallery](./mockups/projects.png)
+![Contact Form](./mockups/contact.png)
+
 ## 🚀 Quick Start
 
 ### 1. Clone the repository
