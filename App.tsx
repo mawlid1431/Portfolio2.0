@@ -1466,7 +1466,7 @@ export default function App() {
               </motion.p>
             </div>
             
-            <div className="flex flex-wrap justify-center gap-6 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 justify-items-center max-w-6xl mx-auto">
               {servicesLoading ? (
                 // Loading skeleton for services
                 [...Array(4)].map((_, index) => (
@@ -1493,7 +1493,7 @@ export default function App() {
                   transition={{ duration: 0.8, delay: index * 0.1 }}
                   whileHover={{ y: -10, scale: 1.02 }}
                   viewport={{ once: true }}
-                  className="cursor-pointer w-full max-w-sm"
+                  className="cursor-pointer w-full max-w-sm mx-auto"
                   onClick={() => {
                     setSelectedService(service);
                     setShowServiceDetails(true);
