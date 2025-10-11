@@ -1039,7 +1039,7 @@ export default function App() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="max-w-4xl mx-auto"
+            className="max-w-6xl mx-auto"
           >
             <div className="text-center mb-16">
               <motion.h2 
@@ -1053,7 +1053,7 @@ export default function App() {
               </motion.h2>
             </div>
             
-            <div className="space-y-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
                 {
                   icon: GraduationCap,
@@ -1109,48 +1109,33 @@ export default function App() {
                   initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.8, delay: index * 0.2 }}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ y: -10, transition: { duration: 0.3 } }}
                   viewport={{ once: true }}
                   onClick={() => edu.link && window.open(edu.link, '_blank')}
                   className={edu.link ? 'cursor-pointer' : ''}
                 >
-                  <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden group">
-                    <CardHeader>
-                      <div className="flex items-center gap-6">
-                        <motion.div
-                          whileHover={{ scale: 1.1, rotate: 5 }}
-                          className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${edu.color} flex items-center justify-center shadow-lg`}
-                        >
-                          <edu.icon className="w-8 h-8 text-white" />
-                        </motion.div>
-                        <div className="flex-1">
-                          <CardTitle className="group-hover:text-primary transition-colors text-xl flex items-center gap-2">
-                            {edu.title}
-                            {edu.link && (
-                              <motion.div
-                                animate={{ x: [0, 5, 0] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </motion.div>
-                            )}
-                          </CardTitle>
-                          <CardDescription className="text-lg mt-1">
-                            {edu.institution}
-                          </CardDescription>
-                          <Badge 
-                            variant={edu.status === 'Current' ? 'default' : 'secondary'}
-                            className="mt-2"
-                          >
-                            {edu.status}
-                          </Badge>
-                        </div>
-                      </div>
+                  <Card className="relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm h-full group">
+                    <CardHeader className="pb-4">
+                      <motion.div
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        className={`w-12 h-12 rounded-xl bg-gradient-to-br ${edu.color} flex items-center justify-center mb-4 shadow-lg`}
+                      >
+                        <edu.icon className="w-6 h-6 text-white" />
+                      </motion.div>
+                      <CardTitle className="group-hover:text-primary transition-colors">{edu.title}</CardTitle>
                     </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground leading-relaxed mb-4">{edu.institution}</p>
+                      <Badge 
+                        variant={edu.status === 'Current' ? 'default' : 'secondary'}
+                        className="mb-2"
+                      >
+                        {edu.status}
+                      </Badge>
+                    </CardContent>
                     
                     {/* Hover Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </Card>
                 </motion.div>
               ))}
